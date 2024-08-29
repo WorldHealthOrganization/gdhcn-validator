@@ -6,7 +6,7 @@ plugins {
 }
 
 java {
-    group = "org.who.ddccverifier.web"
+    group = "org.who.gdhcnvalidator.web"
     version = "0.1.0"
 
     sourceCompatibility = JavaVersion.VERSION_17

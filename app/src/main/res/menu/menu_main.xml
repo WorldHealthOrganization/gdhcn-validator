@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="org.who.ddccverifier.MainActivity">
+    tools:context="org.who.gdhcnvalidator.MainActivity">
     <item
         android:id="@+id/action_sign_in"
         android:orderInCategory="100"

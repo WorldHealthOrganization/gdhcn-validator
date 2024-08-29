@@ -1,8 +1,6 @@
-# World Health Organization's Web DDCC Verifier
+# World Health Organization's Web GDHCN Verifier
 
-This module is composed of UI and API for a DDCC Verifier
-
-The DDCC Verifier is deployed here: https://ddcc-validator.pathcheck.org/
+This module is a proof of concept UI and API for a web-based GDHCN Verifier
 
 # Usage
 
@@ -11,13 +9,13 @@ The API has two available REST inputs:
 ## 1. Image input with 
 
 ```bash
-curl --form file='@QRCode.png' https://ddcc-validator.pathcheck.org/findAndVerify
+curl --form file='@QRCode.png' https://localhost:8080/findAndVerify
 ```
 
 ## 2. QR Content in a POST with JSON
 
 ```bash
-curl -X POST --location "https://ddcc-validator.pathcheck.org/verify" -H "Content-Type: application/json" -d "@QRCodeIn.json"
+curl -X POST --location "https://localhost:8080/verify" -H "Content-Type: application/json" -d "@QRCodeIn.json"
 ```
 
 where QRCodeIn.json contains the string representation inside the QR Code. For example 
@@ -34,7 +32,7 @@ Users can either pass the picture to find the QR Code or find the QR code themse
 
 The output includes stage-by-stage information of the verification process:
 
-- "status" -> Error codes defined [here](https://github.com/WorldHealthOrganization/ddcc-validator/blob/main/verify/src/main/java/org/who/ddccverifier/verify/QRDecoder.kt)
+- "status" -> Error codes defined [here](https://github.com/WorldHealthOrganization/gdhcn-validator/blob/main/verify/src/main/java/org/who/gdhcnverifier/verify/QRDecoder.kt)
 - "qr" -> the value in the QR. if the QR is binary (DIVOC), it outputs a Base64 of the binary content. 
 - "unpacked" -> the best representation of the contents as expected by each specification
 - "contents" -> the resulting FHIR Composition 
@@ -71,7 +69,7 @@ Make sure to have the following pre-requisites installed:
 
 Fork and clone this repository and import into Android Studio
 ```bash
-git clone https://github.com/WorldHealthOrganization/ddcc-validator.git
+git clone https://github.com/WorldHealthOrganization/gdhcn-validator.git
 ```
 
 Use one of the Android Studio builds to install and run the app in your device or a simulator.

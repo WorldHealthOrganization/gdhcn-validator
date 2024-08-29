@@ -7,10 +7,10 @@ plugins {
 android {
     compileSdk 34
 
-    namespace 'org.who.ddccverifier'
+    namespace 'org.who.gdhcnvalidator'
 
     defaultConfig {
-        applicationId "org.who.ddccverifier"
+        applicationId "org.who.gdhcnvalidator"
         minSdk 26
         targetSdk 34
         versionCode 22

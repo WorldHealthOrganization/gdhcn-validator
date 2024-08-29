@@ -4,7 +4,7 @@ plugins {
 }
 
 java {
-    group = "org.who.ddccverifier.trust"
+    group = "org.who.gdhcnvalidator.trust"
     version = "0.0.1-SNAPSHOT"
 
     sourceCompatibility = JavaVersion.VERSION_17
@@ -41,7 +41,7 @@ dependencies {
     // Required for ICAO QR Codes
     implementation 'io.github.erdtman:java-json-canonicalization:1.1'
 
-    // Necessary to Convert the QR into the DDCC FHIR Composite
+    // Necessary to Convert the QR into the FHIR Composite
     implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.0.3'
 
     // Use BouncyCastle to not rely on each Android's version ability to unpack and load public keys

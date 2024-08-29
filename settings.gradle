@@ -8,7 +8,7 @@ dependencyResolutionManagement {
         maven { url = uri("https://repo.spring.io/milestone") }
     }
 }
-rootProject.name = "DDCC Verifier"
+rootProject.name = "GDHCN Validator"
 include ':app'
 include ':verify'
 include ':trust'
