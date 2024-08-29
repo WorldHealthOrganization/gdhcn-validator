@@ -20,7 +20,7 @@ android {
         buildConfigField "String", "OPENID_REDIRECT_URI", "\"${applicationId}:/redirect\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders = [ 'appAuthRedirectScheme': "${applicationId}" ]
+        manifestPlaceholders['appAuthRedirectScheme'] = "${applicationId}"
     }
 
     buildTypes {
