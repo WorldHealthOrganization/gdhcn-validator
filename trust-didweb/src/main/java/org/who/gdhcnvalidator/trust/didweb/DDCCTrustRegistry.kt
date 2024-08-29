@@ -26,21 +26,22 @@ operator fun <T> List<T>.component8() = this[7]
  */
 class GDHCNTrustRegistry : TrustRegistry {
     companion object {
-        const val registrySigningKey = "did:web:PCF.PW:1A13#WEB"
-        const val baseDID = "did:web:raw.githubusercontent.com:WorldHealthOrganization:ddcc-trust:main:dist"
+        const val PROD_KEY_ID = "did:web:tng-cdn.who.int:trustlist"
+        const val TEST_KEY_ID = "did:web:tng-cdn-uat.who.int:trustlist"
+        const val DEV_KEY_ID = "did:web:tng-cdn-dev.who.int:trustlist"
 
-        const val PROD_KEY_ID = "$baseDID:prod:u:k"
-        const val TEST_KEY_ID = "$baseDID:test:u:k"
+        const val PROD_DID = "https://tng-cdn.who.int/trustlist/did.json"
+        const val ACCEPTANCE_DID = "https://tng-cdn-uat.who.int/trustlist/did.json"
+        const val DEV_DID = "https://tng-cdn-dev.who.int/trustlist/did.json"
 
-        const val PROD_DID = "https://tng-cdn-uat.who.int/trustlist/did.json"  //this is UAT not PROD!!! 
-        const val TEST_DID = "https://tng-cdn-dev.who.int/trustlist/did.json"
-
-        val PRODUCTION_REGISTRY = TrustRegistry.RegistryEntity(TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), null)
-        val ACCEPTANCE_REGISTRY =  TrustRegistry.RegistryEntity(TrustRegistry.Scope.ACCEPTANCE_TEST, URI(TEST_DID), null)
+        val PRODUCTION_REGISTRY = TrustRegistry.RegistryEntity(TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), PROD_KEY_ID, null)
+        val ACCEPTANCE_REGISTRY =  TrustRegistry.RegistryEntity(TrustRegistry.Scope.ACCEPTANCE_TEST, URI(ACCEPTANCE_DID), TEST_KEY_ID, null)
+        val DEV_STAGING_REGISTRY =  TrustRegistry.RegistryEntity(TrustRegistry.Scope.DEV_STAGING, URI(DEV_DID), DEV_KEY_ID, null)
     }
 
     // Builds a map of all Frameworks
     private val registry = mutableMapOf<URI, TrustRegistry.TrustedEntity>()
+    private val prefixes = mutableListOf<String>()
 
     private fun wrapPem(pemB64: String): String {
         return "-----BEGIN PUBLIC KEY-----\n$pemB64\n-----END PUBLIC KEY-----"
@@ -84,7 +85,6 @@ class GDHCNTrustRegistry : TrustRegistry {
         return null
     }
 
-    @OptIn(ExperimentalTime::class)
     fun load(registryURL: TrustRegistry.RegistryEntity) {
         try {
             val (didDocumentResolution, elapsedServerDownload) = measureTimedValue {
@@ -115,6 +115,8 @@ class GDHCNTrustRegistry : TrustRegistry {
                 }
             }
 
+            prefixes.add(registryURL.keyIdPrefix)
+
             println("TIME: Trust Parsed and Loaded in ${elapsed}ms")
 
         } catch(t: Throwable) {
@@ -136,7 +138,7 @@ class GDHCNTrustRegistry : TrustRegistry {
 
     override fun init() {
         println("DID:WEB: Initializing")
-        init(PRODUCTION_REGISTRY, ACCEPTANCE_REGISTRY)
+        init(PRODUCTION_REGISTRY, ACCEPTANCE_REGISTRY, DEV_STAGING_REGISTRY)
     }
 
     override fun resolve(framework: TrustRegistry.Framework, kid: String): TrustRegistry.TrustedEntity? {
@@ -144,14 +146,17 @@ class GDHCNTrustRegistry : TrustRegistry {
             val parts = kid.split("#")
             val encController = URLEncoder.encode(parts[0],"UTF-8")
             val encKid = URLEncoder.encode(parts[1],"UTF-8")
-            println("DID:WEB: Resolving $kid -> $PROD_KEY_ID:$encController#$encKid")
-            return registry[URI.create("$PROD_KEY_ID:$encController#$encKid")]
-                ?: registry[URI.create("$TEST_KEY_ID:$encController#$encKid")]
+            return prefixes.firstNotNullOfOrNull {
+                println("DID:WEB: Resolving $kid -> $it:$encController#$encKid")
+                registry[URI.create("$it:$encController#$encKid")]
+            }
         } else {
             val encKid = URLEncoder.encode(kid,"UTF-8")
-            println("DID:WEB: Resolving $kid -> $PROD_KEY_ID:$encKid#$encKid")
-            return registry[URI.create("$PROD_KEY_ID:$encKid#$encKid")]
-                ?: registry[URI.create("$TEST_KEY_ID:$encKid#$encKid")]
+
+            return prefixes.firstNotNullOfOrNull {
+                println("DID:WEB: Resolving $kid -> $it:$encKid#$encKid")
+                registry[URI.create("$it:$encKid#$encKid")]
+            }
         }
     }
 }

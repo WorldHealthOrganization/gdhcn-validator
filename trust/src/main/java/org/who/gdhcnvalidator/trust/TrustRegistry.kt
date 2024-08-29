@@ -9,19 +9,31 @@ import java.util.*
  */
 interface TrustRegistry {
     enum class Status {
-        CURRENT, EXPIRED, TERMINATED, REVOKED
+        CURRENT,
+        EXPIRED,
+        TERMINATED,
+        REVOKED,
     }
+
     enum class Framework {
-        CRED, DCC, ICAO, SHC, DIVOC
+        CRED,
+        DCC,
+        ICAO,
+        SHC,
+        DIVOC,
     }
+
     enum class Scope {
-        PRODUCTION, ACCEPTANCE_TEST
+        PRODUCTION,
+        ACCEPTANCE_TEST,
+        DEV_STAGING,
     }
 
     data class RegistryEntity(
         val scope: Scope,
         val resolvableURI: URI,
-        val publicKey: PublicKey?
+        val keyIdPrefix: String,
+        val publicKey: PublicKey?,
     )
 
     data class TrustedEntity(
@@ -31,10 +43,15 @@ interface TrustRegistry {
         val scope: Scope,
         val validFrom: Date?,
         val validUntil: Date?,
-        val publicKey: PublicKey
+        val publicKey: PublicKey,
     )
 
     fun init()
+
     fun init(vararg customRegistries: RegistryEntity)
-    fun resolve(framework: Framework, kid: String): TrustedEntity?
+
+    fun resolve(
+        framework: Framework,
+        kid: String,
+    ): TrustedEntity?
 }

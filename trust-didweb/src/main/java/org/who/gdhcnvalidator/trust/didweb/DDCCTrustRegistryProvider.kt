@@ -4,7 +4,5 @@ import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.trust.TrustRegistryProvider
 
 open class GDHCNTrustRegistryProvider : TrustRegistryProvider() {
-    override fun create(): TrustRegistry {
-        return GDHCNTrustRegistry()
-    }
+    override fun create(): TrustRegistry = GDHCNTrustRegistry()
 }
