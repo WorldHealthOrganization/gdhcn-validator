@@ -66,8 +66,8 @@ The output includes stage-by-stage information of the verification process:
 ## Setup
 
 Make sure to have the following pre-requisites installed:
-1. Java 11
-2. Android Studio Artic Fox+
+1. Java 17
+2. Android Studio Koala+
 
 Fork and clone this repository and import into Android Studio
 ```bash
