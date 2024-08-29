@@ -82,7 +82,7 @@ Build the app:
 ./gradlew bootRun
 ```
 
-It will start spring boot server and run on port 8080
+It will start spring boot server and run on http://localhost:8080
 
 ## Testing
 ```bash
