@@ -9,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.*
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.who.ddccverifier.services.*
 import org.who.ddccverifier.services.cql.CqlBuilder
@@ -342,6 +343,7 @@ class QRViewTest: BaseTrustRegistryTest() {
     }
 
     @Test
+    @Ignore("Keys are not in the trust registry anymore")
     fun viewDIVOCQR1() = runBlocking {
         TimeZone.setDefault(TimeZone.getTimeZone( "UTC"))
 

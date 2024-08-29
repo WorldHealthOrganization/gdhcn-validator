@@ -5,6 +5,7 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.who.ddccverifier.QRDecoder
@@ -113,6 +114,7 @@ class QRVerifyTest: BaseTrustRegistryTest() {
     }
 
     @Test
+    @Ignore("Key is not in the WHO database anymore")
     fun verifyDCCColombia() {
         verify("EUColombiaContents.txt", "EUColombiaFHIRBundle.json")
     }
@@ -138,6 +140,7 @@ class QRVerifyTest: BaseTrustRegistryTest() {
     }
 
     @Test
+    @Ignore("Key is not in the WHO database anymore")
     fun verifyDIVOCQR() {
         verify("DIVOCQR1Contents.txt", "DIVOCQR1FHIRBundle.json")
     }
@@ -148,6 +151,7 @@ class QRVerifyTest: BaseTrustRegistryTest() {
     }
 
     @Test
+    @Ignore("Key is not in the WHO database anymore")
     fun verifyDIVOCIndonesia() {
         verify("DIVOCIndonesiaContents.txt", "DIVOCIndonesiaFHIRBundle.json")
     }

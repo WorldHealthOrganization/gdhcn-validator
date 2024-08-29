@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.*
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -169,6 +170,7 @@ class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
     }
 
     @Test
+    @Ignore("Keys are not in the trust registry anymore")
     fun evaluateTestPassOnDIVOCQR1FromQRTest() = runBlocking {
         val qr1 = open("DIVOCQR1Contents.txt")
         val verified = DivocVerifier(registry).unpackAndVerify(qr1)
