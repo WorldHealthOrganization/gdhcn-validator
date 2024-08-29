@@ -14,33 +14,33 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:elevation="2dp"
-        android:paddingLeft="13dp"
-        android:paddingRight="13dp"
+        android:paddingStart="13dp"
+        android:paddingEnd="13dp"
         android:paddingTop="6dp"
         android:paddingBottom="6dp"
         android:background="@drawable/rounded_pill"
+        android:gravity="center_vertical"
         app:layout_constraintBottom_toTopOf="@id/tv_result_card"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <info.androidhive.fontawesome.FontTextView
+        <ImageView
             android:id="@+id/tv_result_title_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/fa_check_circle_solid"
-            android:textSize="28dp"
-            android:textColor="@color/white"
-            app:solid_icon="true" />
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/verification_status_verified"
+            android:src="@drawable/check_circle_24px"
+            app:tint="@color/white" />
 
         <TextView
             android:id="@+id/tv_result_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/verification_status_verified"
-            android:textSize="28dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
+            android:textSize="28sp"
+            android:paddingStart="7dp"
+            android:paddingEnd="10dp"
             android:textAlignment="center"
             android:textColor="@color/white" />
     </LinearLayout>
@@ -71,28 +71,28 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="April 06, 1:23pm - COVID-19 Vaccination"
-                android:textSize="16dp" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tv_result_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="John Anyperson"
-                android:textSize="26dp" />
+                android:textSize="26sp" />
 
             <TextView
                 android:id="@+id/tv_result_person_details"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="DoB: Feb 24, 1982, Female"
-                android:textSize="16dp" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tv_result_identifier"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ID: 2342342343"
-                android:textSize="16dp" />
+                android:textSize="16sp" />
 
             <View
                 android:layout_width="fill_parent"
@@ -122,7 +122,7 @@
                 android:layout_height="wrap_content"
                 android:text="SARS-CoV-2 Test Result"
                 android:textAlignment="center"
-                android:textSize="24dp" />
+                android:textSize="24sp" />
 
             <TextView
                 android:id="@+id/tv_result_test_title"
@@ -130,7 +130,7 @@
                 android:layout_height="wrap_content"
                 android:text=""
                 android:textAlignment="center"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
 
             <LinearLayout
                 android:id="@+id/ll_result_test_date"
@@ -143,7 +143,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/test_date_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_test_date"
@@ -151,7 +151,7 @@
                     android:layout_height="wrap_content"
                     android:text="Jul 12, 2021"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
             </LinearLayout>
 
@@ -166,7 +166,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/test_type_detail_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_test_type_detail"
@@ -174,7 +174,7 @@
                     android:layout_height="wrap_content"
                     android:text="Nucleic acid amplification with probe detection"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
             </LinearLayout>
 
@@ -184,7 +184,7 @@
                 android:layout_height="wrap_content"
                 android:text="SARS-CoV-2 mRNA Vaccine"
                 android:textAlignment="center"
-                android:textSize="24dp" />
+                android:textSize="24sp" />
 
             <TextView
                 android:id="@+id/tv_result_dose_title"
@@ -205,7 +205,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_date_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_dose_date"
@@ -213,7 +213,7 @@
                     android:layout_height="wrap_content"
                     android:text="Jul 12, 2021"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
             </LinearLayout>
 
@@ -228,7 +228,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_next_dose_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_next_dose"
@@ -236,7 +236,7 @@
                     android:layout_height="wrap_content"
                     android:text="Aug 1, 2021"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -258,7 +258,7 @@
                     android:layout_height="wrap_content"
                     android:text="Dec 12, 2021"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -272,7 +272,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_product_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_vaccine_info"
@@ -294,7 +294,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_ma_holder_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_vaccine_info2"
@@ -302,7 +302,7 @@
                     android:layout_height="wrap_content"
                     android:text="Moderna Inc"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -316,7 +316,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_location_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_centre"
@@ -324,7 +324,7 @@
                     android:layout_height="wrap_content"
                     android:text="Vaccination Site, USA"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -338,7 +338,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_hcpi_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_hcid"
@@ -346,7 +346,7 @@
                     android:layout_height="wrap_content"
                     android:text="2342342343"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -360,7 +360,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_pha_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_pha"
@@ -368,7 +368,7 @@
                     android:layout_height="wrap_content"
                     android:text="2342342343"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -382,7 +382,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/dose_hw_label"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tv_result_hw"
@@ -390,7 +390,7 @@
                     android:layout_height="wrap_content"
                     android:text="2342342343"
                     android:textAlignment="viewEnd"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <View
@@ -404,47 +404,45 @@
                 android:id="@+id/ll_result_signed_by"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <info.androidhive.fontawesome.FontTextView
+                <ImageView
                     android:id="@+id/tv_result_signed_by_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/fa_check_circle_solid"
-                    android:textColor="@color/success100"
-                    android:textSize="16dp"
-                    app:solid_icon="true" />
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:src="@drawable/check_circle_24px"
+                    app:tint="@color/success100" />
 
                 <TextView
                     android:id="@+id/tv_result_signed_by"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="5dp"
+                    android:paddingStart="5dp"
                     android:text="Signed by CVS Health on Sep 26, 2021"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/ll_result_valid_until"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <info.androidhive.fontawesome.FontTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/fa_check_circle_solid"
-                    android:textColor="@color/success100"
-                    android:textSize="16dp"
-                    app:solid_icon="true" />
+                <ImageView
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:src="@drawable/check_circle_24px"
+                    app:tint="@color/success100" />
 
                 <TextView
                     android:id="@+id/tv_result_valid_until"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="5dp"
+                    android:paddingStart="5dp"
                     android:text="Valid Until on Jun 13, 2023"
-                    android:textSize="16dp" />
+                    android:textSize="16sp" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -455,7 +453,7 @@
         android:layout_height="wrap_content"
         android:padding="15dp"
         android:text="@string/close"
-        android:textSize="18dp"
+        android:textSize="18sp"
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
         app:cornerRadius="32dp"

@@ -1,6 +1,7 @@
 package org.who.ddccverifier.views
 
 import android.annotation.SuppressLint
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -124,24 +125,24 @@ class ResultFragment : Fragment() {
                 binding?.tvResultHeader?.background = resources.getDrawable(R.drawable.rounded_pill_test, null)
                 binding?.tvResultTitle?.text = resources.getString(R.string.verification_status_verified_test_scope)
             }
-            binding?.tvResultTitleIcon?.text = resources.getString(R.string.fa_check_circle_solid)
+            binding?.tvResultTitleIcon?.setImageResource(R.drawable.check_circle_24px)
         } else {
             binding?.tvResultHeader?.background = resources.getDrawable(R.drawable.rounded_pill_invalid, null)
-            binding?.tvResultSignedByIcon?.setTextColor(resources.getColor(R.color.danger100, null))
-            binding?.tvResultTitleIcon?.text = resources.getString(R.string.fa_times_circle_solid)
+            binding?.tvResultTitleIcon?.setColorFilter(R.color.danger100, PorterDuff.Mode.SRC_IN)
+            binding?.tvResultTitleIcon?.setImageResource(R.drawable.cancel_24px)
         }
 
         if (DDCC.issuer != null) {
             binding?.tvResultSignedBy?.text = "Signed by ${DDCC.issuer!!.displayName["en"]}"
             if (DDCC.issuer!!.scope == TrustRegistry.Scope.PRODUCTION)
-                binding?.tvResultSignedByIcon?.setTextColor(resources.getColor(R.color.success100, null))
+                binding?.tvResultSignedByIcon?.setColorFilter(R.color.success100, PorterDuff.Mode.SRC_IN)
             else
-                binding?.tvResultSignedByIcon?.setTextColor(resources.getColor(R.color.warning50, null))
-            binding?.tvResultSignedByIcon?.text = resources.getString(R.string.fa_check_circle_solid)
+                binding?.tvResultSignedByIcon?.setColorFilter(R.color.warning50, PorterDuff.Mode.SRC_IN)
+            binding?.tvResultSignedByIcon?.setImageResource(R.drawable.check_circle_24px)
         } else {
             binding?.tvResultSignedBy?.text = resources.getString(R.string.verification_status_invalid_signature)
-            binding?.tvResultSignedByIcon?.setTextColor(resources.getColor(R.color.danger100, null))
-            binding?.tvResultSignedByIcon?.text = resources.getString(R.string.fa_times_circle_solid)
+            binding?.tvResultSignedByIcon?.setColorFilter(R.color.danger100, PorterDuff.Mode.SRC_IN)
+            binding?.tvResultSignedByIcon?.setImageResource(R.drawable.cancel_24px)
         }
 
         if (DDCC.contents != null) {

@@ -14,6 +14,8 @@
     <string name="pointToQR">Align the QR Code below</string>
     <string name="emptyCardDesc">Saved credentials will appear here.</string>
 
+    <string name="add_new_card">Add new card</string>
+
     <string name="hello_home_fragment">Hello Home Page</string>
     <string name="hello_qrscan_fragment">Hello QR Scan. Arg: %1$s</string>
     <string name="hello_qrresult_fragment">Hello QR Result. Arg: %1$s</string>
