@@ -4,12 +4,19 @@ import org.junit.Assert.assertNotNull
 import org.junit.BeforeClass
 import org.junit.Test
 import org.who.ddccverifier.trust.TrustRegistry
+import java.net.URI
 
 class DDCCTrustRegistryTest {
     companion object {
+        const val PROD_DID = "did:web:raw.githubusercontent.com:WorldHealthOrganization:ddcc-trust:main:dist:prod:u:ml:e"  //this is UAT not PROD!!!
+        const val TEST_DID = "did:web:raw.githubusercontent.com:WorldHealthOrganization:ddcc-trust:main:dist:test:u:ml:e"
+
+        val PRODUCTION_REGISTRY = TrustRegistry.RegistryEntity(TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), null)
+        val ACCEPTANCE_REGISTRY =  TrustRegistry.RegistryEntity(TrustRegistry.Scope.ACCEPTANCE_TEST, URI(TEST_DID), null)
+
         var registry = DDCCTrustRegistry()
         @BeforeClass @JvmStatic fun setup() {
-            registry.init(DDCCTrustRegistry.PRODUCTION_REGISTRY, DDCCTrustRegistry.ACCEPTANCE_REGISTRY)
+            registry.init(PRODUCTION_REGISTRY, ACCEPTANCE_REGISTRY)
         }
     }
 
