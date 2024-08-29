@@ -3,6 +3,7 @@ package org.who.ddccverifier.web
 import com.google.zxing.*
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource
 import com.google.zxing.common.HybridBinarizer
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
 import org.springframework.util.StringUtils
@@ -47,7 +48,7 @@ class RestController {
         }
 
         val image = if (StringUtils.endsWithIgnoreCase(file.originalFilename, "pdf")) {
-            val doc = PDDocument.load(ByteArrayInputStream(file.bytes))
+            val doc = Loader.loadPDF(ByteArrayInputStream(file.bytes).readAllBytes())
             val pdfRenderer = PDFRenderer(doc)
             pdfRenderer.renderImageWithDPI(0, 300f)
         } else {
