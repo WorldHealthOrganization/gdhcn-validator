@@ -1,5 +1,7 @@
 package org.who.gdhcnvalidator
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -45,11 +47,11 @@ class MainActivity : AuthActivity() {
         super.backgroundInit()
         // kicks of the loading of Fhir Engine, Operator and Trust Registry
         FhirApplication.initInMemory(applicationContext)
+        FhirApplication.trustRegistry(applicationContext)
         FhirApplication.fhirContext(applicationContext)
         FhirApplication.fhirEngine(applicationContext)
         FhirApplication.fhirOperator(applicationContext)
         FhirApplication.subscribedIGs(applicationContext)
-        FhirApplication.trustRegistry(applicationContext)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -67,6 +69,7 @@ class MainActivity : AuthActivity() {
         return when (item.itemId) {
             R.id.action_sign_in -> { requestAuthorization(); return true; }
             R.id.action_logout -> { requestSignOff(); return true; }
+            R.id.action_change_trust_lists -> { showTrustListDialog(); return true; }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -74,5 +77,25 @@ class MainActivity : AuthActivity() {
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    fun showTrustListDialog() {
+        val registries = FhirApplication.trustRegistry(this.applicationContext).scopeNames()
+
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        builder.setTitle(R.string.select_active_trust_lists)
+        builder.setMultiChoiceItems(
+            registries.map { it.entity.name }.toTypedArray(),
+            registries.map { it.active }.toBooleanArray()
+        ) { dialog, which, isChecked ->
+            registries[which].active = isChecked
+        }
+        builder.setPositiveButton(
+            R.string.ok,
+        ) { dialogInterface: DialogInterface, i: Int ->
+            dialogInterface.dismiss()
+        }
+
+        builder.show()
     }
 }

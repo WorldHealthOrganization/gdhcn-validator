@@ -3,6 +3,12 @@ package org.who.gdhcnvalidator.trust
 class CompoundRegistry(
     val registries: List<TrustRegistry>,
 ) : TrustRegistry {
+    override fun scopeNames(): List<TrustRegistry.ILoadedRegistry> {
+        return registries.map {
+            it.scopeNames()
+        }.flatten()
+    }
+
     override fun init() {
         registries.forEach {
             it.init()

@@ -7,14 +7,15 @@ import io.ipfs.multibase.Base58
 import io.ipfs.multibase.Multibase
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.who.gdhcnvalidator.trust.TrustRegistry
+import org.who.gdhcnvalidator.trust.TrustRegistry.ILoadedRegistry
+import org.who.gdhcnvalidator.trust.TrustRegistry.RegistryEntity
+import org.who.gdhcnvalidator.trust.TrustRegistry.TrustedEntity
 import java.net.URI
 import java.net.URLEncoder
 import java.security.PublicKey
 import java.security.Security
 import java.text.ParseException
-import java.util.*
 import kotlin.system.measureTimeMillis
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 operator fun <T> List<T>.component6() = this[5]
@@ -34,14 +35,25 @@ class GDHCNTrustRegistry : TrustRegistry {
         const val ACCEPTANCE_DID = "https://tng-cdn-uat.who.int/trustlist/did.json"
         const val DEV_DID = "https://tng-cdn-dev.who.int/trustlist/did.json"
 
-        val PRODUCTION_REGISTRY = TrustRegistry.RegistryEntity(TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), PROD_KEY_ID, null)
-        val ACCEPTANCE_REGISTRY =  TrustRegistry.RegistryEntity(TrustRegistry.Scope.ACCEPTANCE_TEST, URI(ACCEPTANCE_DID), TEST_KEY_ID, null)
-        val DEV_STAGING_REGISTRY =  TrustRegistry.RegistryEntity(TrustRegistry.Scope.DEV_STAGING, URI(DEV_DID), DEV_KEY_ID, null)
+        val PRODUCTION_REGISTRY = RegistryEntity("WHO GDHCN Production", TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), PROD_KEY_ID, null)
+        val ACCEPTANCE_REGISTRY = RegistryEntity("WHO GDHCN Acceptance", TrustRegistry.Scope.ACCEPTANCE_TEST, URI(ACCEPTANCE_DID), TEST_KEY_ID, null)
+        val DEV_STAGING_REGISTRY = RegistryEntity("WHO GDHCN Development", TrustRegistry.Scope.DEV_STAGING, URI(DEV_DID), DEV_KEY_ID, null)
+    }
+
+    class LoadedRegistry(
+        entity: RegistryEntity,
+        val entries: MutableMap<URI, TrustedEntity> = mutableMapOf()
+    ): ILoadedRegistry(entity) {
+        override fun resolve(framework: TrustRegistry.Framework, keyId: String): TrustedEntity? {
+            println("${entity.name}: Resolving (active: $active) $framework $keyId -> ${entity.keyIdPrefix}:$keyId")
+
+            if (!active) return null
+            return entries[URI.create("${entity.keyIdPrefix}:$keyId")]
+        }
     }
 
     // Builds a map of all Frameworks
-    private val registry = mutableMapOf<URI, TrustRegistry.TrustedEntity>()
-    private val prefixes = mutableListOf<String>()
+    private val registries = mutableListOf<LoadedRegistry>()
 
     private fun wrapPem(pemB64: String): String {
         return "-----BEGIN PUBLIC KEY-----\n$pemB64\n-----END PUBLIC KEY-----"
@@ -85,8 +97,10 @@ class GDHCNTrustRegistry : TrustRegistry {
         return null
     }
 
-    fun load(registryURL: TrustRegistry.RegistryEntity) {
+    fun load(registryURL: RegistryEntity) {
         try {
+            val loading = LoadedRegistry(registryURL)
+
             val (didDocumentResolution, elapsedServerDownload) = measureTimedValue {
                 DIDWebResolver().resolve(registryURL.resolvableURI)
             }
@@ -97,8 +111,8 @@ class GDHCNTrustRegistry : TrustRegistry {
                     try {
                         val key = buildPublicKey(it)
                         if (key != null)
-                            registry.put(it.id,
-                                TrustRegistry.TrustedEntity(
+                            loading.entries.put(it.id,
+                                TrustedEntity(
                                     mapOf("en" to it.id.toString()),
                                     "",
                                     TrustRegistry.Status.CURRENT,
@@ -115,7 +129,7 @@ class GDHCNTrustRegistry : TrustRegistry {
                 }
             }
 
-            prefixes.add(registryURL.keyIdPrefix)
+            registries.add(loading)
 
             println("TIME: Trust Parsed and Loaded in ${elapsed}ms")
 
@@ -129,7 +143,7 @@ class GDHCNTrustRegistry : TrustRegistry {
         Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
         Security.addProvider(BouncyCastleProvider())
 
-        registry.clear()
+        registries.clear()
 
         customRegistries.forEach {
             load(it)
@@ -141,21 +155,23 @@ class GDHCNTrustRegistry : TrustRegistry {
         init(PRODUCTION_REGISTRY, ACCEPTANCE_REGISTRY, DEV_STAGING_REGISTRY)
     }
 
+    override fun scopeNames(): List<LoadedRegistry> {
+        return registries
+    }
+
     override fun resolve(framework: TrustRegistry.Framework, kid: String): TrustRegistry.TrustedEntity? {
+        println("GDHCN: Resolving $framework $kid")
         if (kid.contains("#")) {
             val parts = kid.split("#")
             val encController = URLEncoder.encode(parts[0],"UTF-8")
             val encKid = URLEncoder.encode(parts[1],"UTF-8")
-            return prefixes.firstNotNullOfOrNull {
-                println("DID:WEB: Resolving $kid -> $it:$encController#$encKid")
-                registry[URI.create("$it:$encController#$encKid")]
+            return registries.firstNotNullOfOrNull {
+                it.resolve(framework, "$encController#$encKid")
             }
         } else {
             val encKid = URLEncoder.encode(kid,"UTF-8")
-
-            return prefixes.firstNotNullOfOrNull {
-                println("DID:WEB: Resolving $kid -> $it:$encKid#$encKid")
-                registry[URI.create("$it:$encKid#$encKid")]
+            return registries.firstNotNullOfOrNull {
+                it.resolve(framework, "$encKid#$encKid")
             }
         }
     }

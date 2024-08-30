@@ -2,6 +2,9 @@ package org.who.gdhcnvalidator.trust.pathcheck
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.who.gdhcnvalidator.trust.TrustRegistry
+import org.who.gdhcnvalidator.trust.TrustRegistry.ILoadedRegistry
+import org.who.gdhcnvalidator.trust.TrustRegistry.RegistryEntity
+import org.who.gdhcnvalidator.trust.TrustRegistry.TrustedEntity
 import java.net.URI
 import java.security.Security
 import java.text.DateFormat
@@ -24,14 +27,16 @@ class PCFTrustRegistry : TrustRegistry {
     companion object {
         const val REPO = "https://raw.githubusercontent.com/Path-Check/trust-registry/main"
         val PRODUCTION_REGISTRY =
-            TrustRegistry.RegistryEntity(
+            RegistryEntity(
+                name = "PathCheck Production",
                 scope = TrustRegistry.Scope.PRODUCTION,
                 resolvableURI = URI("$REPO/registry_normalized.csv"),
                 keyIdPrefix = "",
                 publicKey = null,
             )
         val ACCEPTANCE_REGISTRY =
-            TrustRegistry.RegistryEntity(
+            RegistryEntity(
+                name = "PathCheck Acceptance",
                 scope = TrustRegistry.Scope.ACCEPTANCE_TEST,
                 resolvableURI = URI("$REPO/test_registry_normalized.csv"),
                 keyIdPrefix = "",
@@ -39,16 +44,28 @@ class PCFTrustRegistry : TrustRegistry {
             )
     }
 
+    class LoadedRegistry(
+        entity: RegistryEntity,
+    ): ILoadedRegistry(entity) {
+        val entries = EnumMap(
+            TrustRegistry.Framework.entries.associateWith {
+                mutableMapOf<String, TrustedEntity>()
+            },
+        )
+
+        override fun resolve(framework: TrustRegistry.Framework, keyId: String): TrustedEntity? {
+            println("${entity.name}: Resolving (active: $active) $framework $keyId")
+
+            if (!active) return null
+            return entries[framework]?.get(keyId)
+        }
+    }
+
     // Using old java.time to keep compatibility down to Android SDK 22.
     private val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
     // Builds a map of all Frameworks
-    private val registry =
-        EnumMap(
-            TrustRegistry.Framework.values().associateWith {
-                mutableMapOf<String, TrustRegistry.TrustedEntity>()
-            },
-        )
+    private val registries = mutableListOf<LoadedRegistry>()
 
     private fun decode(b64: String): String = Base64.getDecoder().decode(b64).toString(Charsets.UTF_8)
 
@@ -56,9 +73,10 @@ class PCFTrustRegistry : TrustRegistry {
 
     private fun wrapPem(pemB64: String): String = "-----BEGIN PUBLIC KEY-----\n$pemB64\n-----END PUBLIC KEY-----"
 
-    @OptIn(ExperimentalTime::class)
-    fun load(registryURL: TrustRegistry.RegistryEntity) {
+    fun load(registryURL: RegistryEntity) {
         try {
+            val loading = LoadedRegistry(registryURL)
+
             // Parsing the CSV
             val (reader, elapsedServerDownload) =
                 measureTimedValue {
@@ -78,7 +96,7 @@ class PCFTrustRegistry : TrustRegistry {
                         ) = it.split(",")
 
                         try {
-                            registry[TrustRegistry.Framework.valueOf(specName.uppercase())]
+                            loading.entries[TrustRegistry.Framework.valueOf(specName.uppercase())]
                                 ?.put(
                                     kid,
                                     TrustRegistry.TrustedEntity(
@@ -98,6 +116,8 @@ class PCFTrustRegistry : TrustRegistry {
                     }
                 }
 
+            registries.add(loading)
+
             println("TIME: Trust Parsed and Loaded in ${elapsed}ms")
         } catch (t: Throwable) {
             println("Exception while loading registry from github")
@@ -105,17 +125,19 @@ class PCFTrustRegistry : TrustRegistry {
         }
     }
 
-    override fun init(vararg customRegistries: TrustRegistry.RegistryEntity) {
+    override fun init(vararg customRegistries: RegistryEntity) {
         Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
         Security.addProvider(BouncyCastleProvider())
 
-        TrustRegistry.Framework.values().forEach {
-            registry[it]?.clear()
-        }
+        registries.clear()
 
         customRegistries.forEach {
             load(it)
         }
+    }
+
+    override fun scopeNames(): List<LoadedRegistry> {
+        return registries
     }
 
     override fun init() {
@@ -126,8 +148,10 @@ class PCFTrustRegistry : TrustRegistry {
     override fun resolve(
         framework: TrustRegistry.Framework,
         kid: String,
-    ): TrustRegistry.TrustedEntity? {
-        println("PathCheck: Resolving $kid")
-        return registry[framework]?.get(kid)
+    ): TrustedEntity? {
+        println("PathCheck: Resolving $framework $kid")
+        return registries.firstNotNullOfOrNull {
+            it.resolve(framework, kid)
+        }
     }
 }

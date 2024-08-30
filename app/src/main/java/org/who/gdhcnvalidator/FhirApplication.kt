@@ -7,6 +7,9 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.FhirEngineConfiguration
 import com.google.android.fhir.FhirEngineProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Library
 import org.who.gdhcnvalidator.services.cql.CqlBuilder
 import org.who.gdhcnvalidator.services.cql.FhirOperator

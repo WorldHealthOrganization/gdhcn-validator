@@ -30,6 +30,7 @@ interface TrustRegistry {
     }
 
     data class RegistryEntity(
+        val name: String,
         val scope: Scope,
         val resolvableURI: URI,
         val keyIdPrefix: String,
@@ -45,6 +46,16 @@ interface TrustRegistry {
         val validUntil: Date?,
         val publicKey: PublicKey,
     )
+
+    abstract class ILoadedRegistry(
+        val entity: RegistryEntity
+    ) {
+        var active: Boolean = true
+
+        abstract fun resolve(framework: Framework, keyId: String): TrustedEntity?
+    }
+
+    fun scopeNames(): List<ILoadedRegistry>
 
     fun init()
 
