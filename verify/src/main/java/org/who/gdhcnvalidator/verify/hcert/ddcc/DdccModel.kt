@@ -14,7 +14,7 @@ import org.who.gdhcnvalidator.verify.shc.DecimalToDataTimeDeserializer
 import kotlin.reflect.full.declaredMemberProperties
 
 
-class WHO_CWT (
+class DdccCwt (
     @JsonProperty("1")
     val iss: StringType?,   // Issuer
     @JsonProperty("2")
@@ -33,15 +33,15 @@ class WHO_CWT (
     @JsonProperty("7")
     val id: StringType?,   // Audience
     @JsonProperty("-260")
-    val data: WHO_HCERT?,      // Certificate
+    val data: DdccHCert?,      // Certificate
 ): BaseModel()
 
-class WHO_HCERT(
+class DdccHCert(
     @JsonProperty("1")
-    val cert: WHOLogicalModel?          // Cert
+    val cert: DdccLogicalModel?          // Cert
 ): BaseModel()
 
-class WHOLogicalModel (
+class DdccLogicalModel (
     val meta: Meta?,
 
     val name: StringType?,

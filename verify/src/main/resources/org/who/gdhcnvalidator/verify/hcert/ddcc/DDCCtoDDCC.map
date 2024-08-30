@@ -1,13 +1,12 @@
-map "http://worldhealthorganization.github.io/ddcc/StructureMap/CertWHOtoDDCC" = "WHOtoDDCC"
+map "http://worldhealthorganization.github.io/ddcc/StructureMap/CertDDCCtoDDCC" = "DDCCtoDDCC"
 
-uses "http://worldhealthorganization.github.io/ddcc/StructureDefinition/CertWHO"     alias WHOLogicalModel as source
+uses "http://worldhealthorganization.github.io/ddcc/StructureDefinition/CertDDCC"     alias DdccLogicalModel as source
 uses "http://worldhealthorganization.github.io/ddcc/StructureDefinition/TestResult"  alias TestResult as source
 uses "http://worldhealthorganization.github.io/ddcc/StructureDefinition/Meta"        alias Meta as source
 
 uses "http://hl7.org/fhir/StructureDefinition/Bundle"                                alias Bundle as target
 
-
-group WHOtoDDCC (source src: WHOLogicalModel, target bundle: Bundle){
+group DDCCtoDDCC (source src: DdccLogicalModel, target bundle: Bundle){
     src -> bundle.type = "transaction" "set bundle type";
 
     src -> bundle, bundle.entry as entry, entry.resource = create('Composition') as comp then {
@@ -16,7 +15,7 @@ group WHOtoDDCC (source src: WHOLogicalModel, target bundle: Bundle){
     } "Patient and Composition Create";
 }
 
-group ExtractCert(source src: WHOLogicalModel, target bundle: Bundle, target comp: Composition){
+group ExtractCert(source src: DdccLogicalModel, target bundle: Bundle, target comp: Composition){
     src -> comp, bundle.entry as entry, entry.resource = create('Patient') as patient, uuid() as pid then {
         src -> patient then ExtractPatient(src, pid, patient) "extract patient";
         src -> comp.subject as subj, subj.reference = append("Patient/", pid) "Composition.Set patient";
@@ -168,7 +167,7 @@ group ExtractTestResult(source test: TestResult, source oid, target observation:
         "set country";
 }
 
-group ExtractVaccine(source vac: WHOLogicalModel, source oid, target immunization: Immunization) {
+group ExtractVaccine(source vac: DdccLogicalModel, source oid, target immunization: Immunization) {
     vac.date as dt ->
         immunization.occurrence = dt
         "set occurrence date";
@@ -218,7 +217,7 @@ group ExtractVaccine(source vac: WHOLogicalModel, source oid, target immunizatio
     vac -> immunization.protocolApplied as protocolApplied then ExtractProtocolApplied(vac, oid, protocolApplied) "set protocol applied";
 }
 
-group ExtractRecommendation(source vac: WHOLogicalModel, source oid, target recommendation) {
+group ExtractRecommendation(source vac: DdccLogicalModel, source oid, target recommendation) {
     vac.vaccine as vp ->
         recommendation.vaccineCode as type,
         type.coding = vp
@@ -263,7 +262,7 @@ group ExtractProtocolApplied(source vac: VacEvent, source oid, target protocol: 
     oid -> protocol.authority as authority, authority.reference = append("Organization/", oid) "set authority";
 }
 
-group ExtractPatient(source src: WHOLogicalModel, source pid, target patient: Patient) {
+group ExtractPatient(source src: DdccLogicalModel, source pid, target patient: Patient) {
     pid -> patient.id = pid "Patient ID";
 
     src.name as patientName -> patient.name = create('HumanName') as humanName, humanName.text = patientName "Patient Name";
@@ -274,7 +273,7 @@ group ExtractPatient(source src: WHOLogicalModel, source pid, target patient: Pa
     } "set gender rule";
 }
 
-group ExtractComposition(source src: WHOLogicalModel, target composition: Composition) {
+group ExtractComposition(source src: DdccLogicalModel, target composition: Composition) {
     src.hcid as hcid ->
         composition.identifier as identif,
         identif.value = hcid
@@ -293,7 +292,7 @@ group ExtractComposition(source src: WHOLogicalModel, target composition: Compos
     src -> composition.event as event, event.period = create('Period') as period then ExtractPeriod(src, period) "Extract Period";
 }
 
-group ExtractPeriod(source src: WHOLogicalModel, target tgt : Period) {
+group ExtractPeriod(source src: DdccLogicalModel, target tgt : Period) {
     src.valid_from as iat -> tgt.start = iat "Start issuedAt";
     src.valid_until as exp -> tgt.end = exp "End expiration";
 }

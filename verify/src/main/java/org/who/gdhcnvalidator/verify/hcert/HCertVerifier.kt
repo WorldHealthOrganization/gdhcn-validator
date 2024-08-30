@@ -11,13 +11,12 @@ import org.who.gdhcnvalidator.QRDecoder
 import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.verify.hcert.dcc.DccMapper
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.CWT
-import org.who.gdhcnvalidator.verify.hcert.dcc.logical.WHOLogicalModel
-import org.who.gdhcnvalidator.verify.hcert.dcc.logical.WHO_CWT
-import org.who.gdhcnvalidator.verify.hcert.who.WhoMapper
+import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccLogicalModel
+import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCwt
+import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccMapper
 import java.security.PublicKey
 import java.util.*
 import java.util.zip.InflaterInputStream
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 /**
@@ -115,10 +114,10 @@ class HCertVerifier (private val registry: TrustRegistry) {
             }
 
         try {
-            return WhoMapper().run(
+            return DdccMapper().run(
                 jacksonObjectMapper().readValue(
                     hcertPayload.ToJSONString(),
-                    WHOLogicalModel::class.java
+                    DdccLogicalModel::class.java
                 )
             );
         } catch (e: Exception) {
@@ -128,9 +127,9 @@ class HCertVerifier (private val registry: TrustRegistry) {
         try {
             jacksonObjectMapper().readValue(
                 hcertPayload.ToJSONString(),
-                WHO_CWT::class.java
+                DdccCwt::class.java
             ).data?.cert?.let {
-                return WhoMapper().run(it);
+                return DdccMapper().run(it);
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -153,7 +152,7 @@ class HCertVerifier (private val registry: TrustRegistry) {
 
         val kid = getKID(signedMessage) ?: return QRDecoder.VerificationResult(QRDecoder.Status.KID_NOT_INCLUDED, contents, null, qr, unpacked)
         val countryCode = getCountry(contentsCBOR)
-        
+
         val issuer = if (countryCode != null) {
             // try new key ids first
             resolveIssuer("$countryCode#$kid") ?: resolveIssuer(kid) ?: return QRDecoder.VerificationResult(QRDecoder.Status.ISSUER_NOT_TRUSTED, contents, null, qr, unpacked)

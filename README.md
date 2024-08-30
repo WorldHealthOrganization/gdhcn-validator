@@ -12,7 +12,7 @@ anywhere. Our goal is to make a Verifier App with the widest possible verificati
 2. Cryptographically Verifies the information following the specifications of
    1. W3C VC
    2. Smart Health Cards 
-   3. EU DCC, WHO DCC and LAC PASS DCC 
+   3. EU DCC, WHO DDCC and LAC PASS DCC 
    4. ICAO Visible Digital Seals
 3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [Global Digital Health Certification Network](https://www.who.int/initiatives/global-digital-health-certification-network)
 4. Transform the QR Payload using [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/) for [International
@@ -101,7 +101,7 @@ Android will connect with your local IP. Just make sure the phone is in the same
       │WhoModel  │DccModel    │ShcModel          │DivocModel         │IcaoModel   │  ║
 ╔═════╪══════════╪════════════╪══════════════════╪═══════════════════╪═════════╗  │  ║ StructureMaps
 ║ ┌───▼───────┐┌─▼─────────┐┌─▼─────────┐  ┌─────▼───────┐ ┌─────────▼───────┐ ║  │  ║ 
-║ │ WHOMapper ││ DCCMapper ││ JWTMapper │  │ DivocMapper │ │   IJsonMapper   │ ║══│══╝
+║ │ DDCCMapper││ DCCMapper ││ JWTMapper │  │ DivocMapper │ │   IJsonMapper   │ ║══│══╝
 ║ └───┬───────┘└──┬────────┘└─┬─────────┘  └─────┬───────┘ └─────────┬───────┘ ║  │  ║
 ╚═════╪═══════════╪═══════════╪══════════════════╪═══════════════════╪═════════╝  │  ║
       └───────────┴───────────┴────────────┬─────┴───────────────────┘            │  ║
