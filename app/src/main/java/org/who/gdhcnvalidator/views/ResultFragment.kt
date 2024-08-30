@@ -128,21 +128,25 @@ class ResultFragment : Fragment() {
             binding?.tvResultTitleIcon?.setImageResource(R.drawable.check_circle_24px)
         } else {
             binding?.tvResultHeader?.background = resources.getDrawable(R.drawable.rounded_pill_invalid, null)
-            binding?.tvResultTitleIcon?.setColorFilter(R.color.danger100, PorterDuff.Mode.SRC_IN)
             binding?.tvResultTitleIcon?.setImageResource(R.drawable.cancel_24px)
         }
 
         if (DDCC.issuer != null) {
             binding?.tvResultSignedBy?.text = "Signed by ${DDCC.issuer!!.displayName["en"]}"
-            if (DDCC.issuer!!.scope == TrustRegistry.Scope.PRODUCTION)
-                binding?.tvResultSignedByIcon?.setColorFilter(R.color.success100, PorterDuff.Mode.SRC_IN)
-            else
-                binding?.tvResultSignedByIcon?.setColorFilter(R.color.warning50, PorterDuff.Mode.SRC_IN)
-            binding?.tvResultSignedByIcon?.setImageResource(R.drawable.check_circle_24px)
+            if (DDCC.issuer!!.scope == TrustRegistry.Scope.PRODUCTION) {
+                binding?.tvResultSignedByIconFailed?.visibility = View.GONE
+                binding?.tvResultSignedByIconUntrusted?.visibility = View.GONE
+                binding?.tvResultSignedByIconSuccess?.visibility = View.VISIBLE
+            } else {
+                binding?.tvResultSignedByIconFailed?.visibility = View.GONE
+                binding?.tvResultSignedByIconUntrusted?.visibility = View.VISIBLE
+                binding?.tvResultSignedByIconSuccess?.visibility = View.GONE
+            }
         } else {
             binding?.tvResultSignedBy?.text = resources.getString(R.string.verification_status_invalid_signature)
-            binding?.tvResultSignedByIcon?.setColorFilter(R.color.danger100, PorterDuff.Mode.SRC_IN)
-            binding?.tvResultSignedByIcon?.setImageResource(R.drawable.cancel_24px)
+            binding?.tvResultSignedByIconFailed?.visibility = View.VISIBLE
+            binding?.tvResultSignedByIconUntrusted?.visibility = View.GONE
+            binding?.tvResultSignedByIconSuccess?.visibility = View.GONE
         }
 
         if (DDCC.contents != null) {

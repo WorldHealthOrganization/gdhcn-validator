@@ -41,6 +41,7 @@
             android:textSize="28sp"
             android:paddingStart="7dp"
             android:paddingEnd="10dp"
+            android:paddingBottom="2dp"
             android:textAlignment="center"
             android:textColor="@color/white" />
     </LinearLayout>
@@ -408,17 +409,32 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:id="@+id/tv_result_signed_by_icon"
+                    android:id="@+id/tv_result_signed_by_icon_success"
                     android:layout_height="16dp"
                     android:layout_width="16dp"
                     android:src="@drawable/check_circle_24px"
                     app:tint="@color/success100" />
+
+                <ImageView
+                    android:id="@+id/tv_result_signed_by_icon_failed"
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:src="@drawable/cancel_24px"
+                    app:tint="@color/danger100" />
+
+                <ImageView
+                    android:id="@+id/tv_result_signed_by_icon_untrusted"
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:src="@drawable/cancel_24px"
+                    app:tint="@color/warning50" />
 
                 <TextView
                     android:id="@+id/tv_result_signed_by"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="5dp"
+                    android:paddingBottom="1dp"
                     android:text="Signed by CVS Health on Sep 26, 2021"
                     android:textSize="16sp" />
             </LinearLayout>
@@ -441,6 +457,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="5dp"
+                    android:paddingBottom="1dp"
                     android:text="Valid Until on Jun 13, 2023"
                     android:textSize="16sp" />
             </LinearLayout>
