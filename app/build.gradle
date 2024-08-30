@@ -26,6 +26,7 @@ android {
     buildTypes {
         debug {
             buildConfigField "String", "OPENID_SERVER_URL", "\"http://${getDevHost()}:8080/auth/realms/master/\""
+            manifestPlaceholders['usesCleartextTraffic'] = true
         }
         release {
             buildConfigField "String", "OPENID_SERVER_URL", "null"
