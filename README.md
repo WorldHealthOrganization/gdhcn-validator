@@ -20,8 +20,14 @@ anywhere. Our goal is to make a Verifier App with the widest possible verificati
 5. Calculates the assessment of the health information using CQL Libraries from subscribed IGs
 6. Displays the medical information, the credential information, the issuer information and the assessment results in the screen.
 
-# Development Overview
+Reference documentation can be found at:
+- https://worldhealthorganization.github.io/smart-trust/
+- https://worldhealthorganization.github.io/smart-icvp
+- https://worldhealthorganization.github.io/ddcc/
+- https://smart.who.int/trust/
 
+# Development Overview
+- 
 ## Setup
 
 Make sure to have the following pre-requisites installed:

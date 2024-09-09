@@ -73,16 +73,19 @@ class QRVerifyTest: BaseTrustRegistryTest() {
         }
     }
 
+    @Ignore("QR codes created in the first version are now invalid")
     @Test
     fun verifyWHOQR1() {
         verify("WHOQR1Contents.txt", "WHOQR1FHIRBundle.json")
     }
 
+    @Ignore("QR codes created in the first version are now invalid")
     @Test
     fun verifyWHOQR2() {
         verify("WHOQR2Contents.txt", "WHOQR2FHIRBundle.json")
     }
 
+    @Ignore("QR codes created in the first version are now invalid")
     @Test
     fun verifyWHOSingaporePCR() {
         verify("WHOSingaporePCRContents.txt", "WHOSingaporePCRFHIRBundle.json")

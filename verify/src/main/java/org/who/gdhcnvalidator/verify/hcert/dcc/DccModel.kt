@@ -1,44 +1,9 @@
 package org.who.gdhcnvalidator.verify.hcert.dcc.logical
 
-import ca.uhn.fhir.model.api.TemporalPrecisionEnum
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.hl7.fhir.r4.model.*
 import org.who.gdhcnvalidator.verify.BaseModel
-import org.who.gdhcnvalidator.verify.shc.DecimalToDataTimeDeserializer
-import java.util.*
 
-class CWT (
-    @JsonProperty("1")
-    val iss: StringType?,   // Issuer
-    @JsonProperty("2")
-    val sub: StringType?,   // Subject
-    @JsonProperty("3")
-    val aud: StringType?,   // Audience
-    @JsonProperty("4")
-    @JsonDeserialize(using = DecimalToDataTimeDeserializer::class)
-    val exp: DateTimeType?, // expiration
-    @JsonProperty("5")
-    @JsonDeserialize(using = DecimalToDataTimeDeserializer::class)
-    val nbf: DateTimeType?, // not before date
-    @JsonProperty("6")
-    @JsonDeserialize(using = DecimalToDataTimeDeserializer::class)
-    val iat: DateTimeType?, // issued at date
-    @JsonProperty("7")
-    val id: StringType?,   // Audience
-    @JsonProperty("-260")
-    val data: HCERT?,      // Certificate
-): BaseModel()
-
-class HCERT(
-    @JsonProperty("1")
-    val cert: HC1?          // Cert
-): BaseModel()
-
-class HC1(
+class HCertDCC(
     val ver: StringType?,       // Schema version
     val nam: PersonName?,       // Person name
     val dob: DateType?,         // date of birth
@@ -91,13 +56,3 @@ class Recovery(
 ): BaseModel()
 
 
-object DecimalToDataTimeDeserializer: JsonDeserializer<DateTimeType>() {
-    private fun parseDateType(date: Double?): DateTimeType? {
-        if (date == null) return null
-        return DateTimeType(Date((date*1000).toLong()), TemporalPrecisionEnum.DAY)
-    }
-
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): DateTimeType? {
-        return parseDateType(p.decimalValue?.toDouble())
-    }
-}

@@ -6,7 +6,7 @@ uses "http://worldhealthorganization.github.io/ddcc/StructureDefinition/Meta"   
 
 uses "http://hl7.org/fhir/StructureDefinition/Bundle"                                alias Bundle as target
 
-group DDCCtoDDCC (source src: DdccLogicalModel, target bundle: Bundle){
+group DDCCtoDDCC (source src: DdccCoreDataSet, target bundle: Bundle){
     src -> bundle.type = "transaction" "set bundle type";
 
     src -> bundle, bundle.entry as entry, entry.resource = create('Composition') as comp then {
@@ -15,7 +15,7 @@ group DDCCtoDDCC (source src: DdccLogicalModel, target bundle: Bundle){
     } "Patient and Composition Create";
 }
 
-group ExtractCert(source src: DdccLogicalModel, target bundle: Bundle, target comp: Composition){
+group ExtractCert(source src: DdccCoreDataSet, target bundle: Bundle, target comp: Composition){
     src -> comp, bundle.entry as entry, entry.resource = create('Patient') as patient, uuid() as pid then {
         src -> patient then ExtractPatient(src, pid, patient) "extract patient";
         src -> comp.subject as subj, subj.reference = append("Patient/", pid) "Composition.Set patient";

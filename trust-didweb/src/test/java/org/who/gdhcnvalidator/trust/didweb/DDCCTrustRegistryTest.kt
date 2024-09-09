@@ -4,6 +4,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.BeforeClass
 import org.junit.Test
 import org.who.gdhcnvalidator.trust.TrustRegistry
+import org.who.gdhcnvalidator.trust.didweb.GDHCNTrustRegistry.Companion.ACCEPTANCE_REGISTRY
 import java.net.URI
 
 class GDHCNTrustRegistryTest {
@@ -14,8 +15,8 @@ class GDHCNTrustRegistryTest {
         const val PROD_DID = "did:web:raw.githubusercontent.com:WorldHealthOrganization:ddcc-trust:main:dist:prod:u:ml:e"  //this is UAT not PROD!!!
         const val TEST_DID = "did:web:raw.githubusercontent.com:WorldHealthOrganization:ddcc-trust:main:dist:test:u:ml:e"
 
-        val PRODUCTION_REGISTRY = TrustRegistry.RegistryEntity(TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), PROD_KEY_ID, null)
-        val ACCEPTANCE_REGISTRY =  TrustRegistry.RegistryEntity(TrustRegistry.Scope.ACCEPTANCE_TEST, URI(TEST_DID), TEST_KEY_ID, null)
+        val PRODUCTION_REGISTRY = TrustRegistry.RegistryEntity("DDCC-Trust Prod", TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), PROD_KEY_ID, null)
+        val ACCEPTANCE_REGISTRY =  TrustRegistry.RegistryEntity("DDCC-Trust Acceptance", TrustRegistry.Scope.ACCEPTANCE_TEST, URI(TEST_DID), TEST_KEY_ID, null)
 
         var registry = GDHCNTrustRegistry()
         @BeforeClass @JvmStatic fun setup() {

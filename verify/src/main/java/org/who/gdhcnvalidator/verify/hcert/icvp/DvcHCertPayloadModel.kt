@@ -1,45 +1,10 @@
 package org.who.gdhcnvalidator.verify.hcert.dcc.logical
 
-import ca.uhn.fhir.model.api.TemporalPrecisionEnum
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.hl7.fhir.r4.model.*
 import org.who.gdhcnvalidator.verify.BaseModel
-import org.who.gdhcnvalidator.verify.shc.DecimalToDataTimeDeserializer
-import java.util.Date
 
 
-class IcvpCwt (
-    @JsonProperty("1")
-    val iss: StringType?,   // Issuer
-    @JsonProperty("2")
-    val sub: StringType?,   // Subject
-    @JsonProperty("3")
-    val aud: StringType?,   // Audience
-    @JsonProperty("4")
-    @JsonDeserialize(using = DecimalToDataTimeDeserializer::class)
-    val exp: DateTimeType?, // expiration
-    @JsonProperty("5")
-    @JsonDeserialize(using = DecimalToDataTimeDeserializer::class)
-    val nbf: DateTimeType?, // not before date
-    @JsonProperty("6")
-    @JsonDeserialize(using = DecimalToDataTimeDeserializer::class)
-    val iat: DateTimeType?, // issued at date
-    @JsonProperty("7")
-    val id: StringType?,   // Audience
-    @JsonProperty("-260")
-    val data: IcvpHCert?,      // Certificate
-): BaseModel()
-
-class IcvpHCert(
-    @JsonProperty("1")
-    val cert: HC1?          // Cert
-): BaseModel()
-
-class DvcHCert(
+class HCertDVC(
     val n: StringType?,       // Person name
     val dob: DateType?,       // Date of birth in YYYY-MM-DD format
     val s: Coding?,           // Sex
@@ -47,7 +12,7 @@ class DvcHCert(
     val nid: StringType?,     // National Identification Document
     val gn: StringType?,      // Parent or Guardian Name
 
-    val v: List<DvcHCertVaccination>?,  // Vaccination Group
+    val v: List<DvcHCertVaccination>?,  // Vaccination Group (Can only have one)
 ): BaseModel()
 
 class DvcHCertVaccination(

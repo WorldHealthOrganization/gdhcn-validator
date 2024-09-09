@@ -10,10 +10,10 @@ import org.hl7.fhir.r4.model.Bundle
 import org.who.gdhcnvalidator.QRDecoder
 import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.verify.hcert.dcc.DccMapper
-import org.who.gdhcnvalidator.verify.hcert.dcc.logical.CWT
-import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccLogicalModel
-import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCwt
+import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetTR
+import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetVS
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccMapper
+import org.who.gdhcnvalidator.verify.hcert.icvp.DvcMapper
 import java.security.PublicKey
 import java.util.*
 import java.util.zip.InflaterInputStream
@@ -101,23 +101,40 @@ class HCertVerifier (private val registry: TrustRegistry) {
     }
 
     fun toFhir(hcertPayload: CBORObject): Bundle? {
-        if (hcertPayload[EU_DCC_CODE] != null)
+        if (hcertPayload[EU_DCC_CODE] != null) {
             try {
-                return DccMapper().run(
-                    jacksonObjectMapper().readValue(
-                        hcertPayload.ToJSONString(),
-                        CWT::class.java
-                    )
+                val payload = jacksonObjectMapper().readValue(
+                    hcertPayload.ToJSONString(),
+                    CWTPayload::class.java
                 )
+
+                if (payload.data?.dcc != null) {
+                    return DccMapper().run(payload)
+                }
+
+                payload.data?.coreDataSetVS?.let {
+                    return DdccMapper().run(it)
+                }
+/*
+                payload.data?.coreDataSetTR?.let {
+                    return DdccMapper().run(it)
+                }
+
+                payload.data?.dvc?.let {
+                    return DvcMapper().run(it)
+                }*/
             } catch (e: Exception) {
+                println("error on: "+ hcertPayload.ToJSONString())
                 e.printStackTrace()
             }
+        }
 
+        // hacks from previous versions
         try {
             return DdccMapper().run(
                 jacksonObjectMapper().readValue(
                     hcertPayload.ToJSONString(),
-                    DdccLogicalModel::class.java
+                    DdccCoreDataSetVS::class.java
                 )
             );
         } catch (e: Exception) {
@@ -125,12 +142,12 @@ class HCertVerifier (private val registry: TrustRegistry) {
         }
 
         try {
-            jacksonObjectMapper().readValue(
-                hcertPayload.ToJSONString(),
-                DdccCwt::class.java
-            ).data?.cert?.let {
-                return DdccMapper().run(it);
-            }
+            return DdccMapper().run(
+                jacksonObjectMapper().readValue(
+                    hcertPayload.ToJSONString(),
+                    DdccCoreDataSetTR::class.java
+                )
+            );
         } catch (e: Exception) {
             e.printStackTrace()
         }
