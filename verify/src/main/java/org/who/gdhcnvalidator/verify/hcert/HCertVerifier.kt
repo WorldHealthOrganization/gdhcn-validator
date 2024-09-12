@@ -13,6 +13,7 @@ import org.who.gdhcnvalidator.verify.hcert.dcc.DccMapper
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetTR
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetVS
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccMapper
+import org.who.gdhcnvalidator.verify.hcert.healthlink.HealthLinkMapper
 import org.who.gdhcnvalidator.verify.hcert.icvp.DvcMapper
 import java.security.PublicKey
 import java.util.*
@@ -101,7 +102,8 @@ class HCertVerifier (private val registry: TrustRegistry) {
     }
 
     fun toFhir(hcertPayload: CBORObject): Bundle? {
-        if (hcertPayload[EU_DCC_CODE] != null) {
+        val hcert = hcertPayload[EU_DCC_CODE]
+        if (hcert != null) {
             try {
                 val payload = jacksonObjectMapper().readValue(
                     hcertPayload.ToJSONString(),
@@ -115,14 +117,18 @@ class HCertVerifier (private val registry: TrustRegistry) {
                 payload.data?.coreDataSetVS?.let {
                     return DdccMapper().run(it)
                 }
-/*
+
+                payload.data?.healthLink?.let {
+                    return HealthLinkMapper().run(it.first())
+                }
+
                 payload.data?.coreDataSetTR?.let {
                     return DdccMapper().run(it)
                 }
 
                 payload.data?.dvc?.let {
                     return DvcMapper().run(it)
-                }*/
+                }
             } catch (e: Exception) {
                 println("error on: "+ hcertPayload.ToJSONString())
                 e.printStackTrace()

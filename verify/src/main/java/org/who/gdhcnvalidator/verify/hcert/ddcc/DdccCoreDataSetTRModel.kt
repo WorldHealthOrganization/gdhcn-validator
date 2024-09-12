@@ -1,9 +1,11 @@
 package org.who.gdhcnvalidator.verify.hcert.dcc.logical
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.hl7.fhir.r4.model.*
 import org.who.gdhcnvalidator.verify.BaseModel
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccCertificate
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccCoreDataSet
+import org.who.gdhcnvalidator.verify.hcert.ddcc.IdentifierDeserializer
 import org.who.gdhcnvalidator.verify.hcert.ddcc.MyMeta
 
 class DdccCoreDataSetTR (
@@ -11,6 +13,7 @@ class DdccCoreDataSetTR (
     name: StringType?,
     birthDate: DateType?,
     sex: Coding?,
+    @JsonDeserialize(using = IdentifierDeserializer::class)
     identifier: Identifier?,
 
     certificate: DdccCertificate?,

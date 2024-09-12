@@ -6,21 +6,24 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import org.hl7.fhir.r4.model.CodeType
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.StringType
-import org.hl7.fhir.r4.model.ValueSet
 import org.who.gdhcnvalidator.verify.BaseModel
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetTR
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetVS
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.HCertDCC
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.HCertDVC
+import org.who.gdhcnvalidator.verify.hcert.healthlink.SmartHealthLinkModel
 import java.util.Date
 
 
 // from: https://worldhealthorganization.github.io/smart-trust/StructureDefinition-HCert.html
 class CWTPayload (
     @JsonProperty("1")
-    val iss: StringType?,   // Issuer
+    // TODO: Spec says Coding.
+    val iss: CodeType?,   // Issuer
     @JsonProperty("2")
     val sub: StringType?,   // Subject
     @JsonProperty("3")
@@ -45,14 +48,13 @@ class HCert(
     val dcc: HCertDCC?,
     @JsonProperty("3")
     val coreDataSetVS: DdccCoreDataSetVS?,
-/*
     @JsonProperty("4")
     val coreDataSetTR: DdccCoreDataSetTR?,
+    // TODO: This should not be an array
     @JsonProperty("5")
-    val smartHealthLink: Any?,
+    val healthLink: List<SmartHealthLinkModel>?,
     @JsonProperty("-6")
     val dvc: HCertDVC?,
- */
 ): BaseModel()
 
 object DecimalToDataTimeDeserializer: JsonDeserializer<DateTimeType>() {
