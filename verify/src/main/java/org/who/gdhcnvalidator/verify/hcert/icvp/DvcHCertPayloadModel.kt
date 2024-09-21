@@ -1,6 +1,7 @@
 package org.who.gdhcnvalidator.verify.hcert.dcc.logical
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.google.api.client.util.DateTime
 import org.hl7.fhir.r4.model.*
 import org.who.gdhcnvalidator.verify.BaseModel
 import org.who.gdhcnvalidator.verify.hcert.ddcc.IdentifierDeserializer
@@ -30,8 +31,8 @@ class DvcHCertVaccination(
     val mid: IdType?, // manufacturer id
     val dt: DateType?,   // Date of vaccination, YYYY-MM-DD format
     val bo: StringType?, // batch number
-    val vls: DateType?,  // Certificate Validity periods start date
-    val vle: DateType?,  // Certificate Validity periods end date
+    val vls: DateTime?,  // Certificate Validity periods start date
+    val vle: DateTime?,  // Certificate Validity periods end date
     val cn: StringType?, // Name of supervising clinician
     val `is`:StringType?,// Certificate issuer (organization name)
 ): BaseModel()

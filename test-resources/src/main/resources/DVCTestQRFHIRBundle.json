@@ -1,0 +1,150 @@
+{
+  "resourceType": "Bundle",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/StructureDefinition/Bundle"
+    ]
+  },
+  "identifier": {
+    "system": "urn:oid:2.16.724.4.8.10.200.10",
+    "value": "43293785-70d2-4cbe-8ecf-30b947fd45d5"
+  },
+  "type": "document",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:a9152ef1-efdd-4e3e-b8c3-d02153afc059",
+      "resource": {
+        "resourceType": "Composition",
+        "id": "a9152ef1-efdd-4e3e-b8c3-d02153afc059",
+        "status": "final",
+        "type": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "60591-5"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:969e8fbe-52b8-425f-8c4c-bbd6f7aa886f"
+        },
+        "title": "International Patient Summary",
+        "section": [
+          {
+            "id": "d9b35e76-f553-4a18-9254-3372d9ea8c73",
+            "title": "Medication Summary Section",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "10160-0"
+                }
+              ]
+            },
+            "text": {
+              "status": "empty",
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+            },
+            "emptyReason": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/ValueSet/list-empty-reason",
+                  "code": "unavailable"
+                }
+              ]
+            }
+          },
+          {
+            "id": "7c967bcb-abc6-4cb6-b590-7b5827d9aae3",
+            "title": "Allergies Section",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "48765-2"
+                }
+              ]
+            },
+            "text": {
+              "status": "empty",
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+            },
+            "emptyReason": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/ValueSet/list-empty-reason",
+                  "code": "unavailable"
+                }
+              ]
+            }
+          },
+          {
+            "id": "04db279a-ba4d-472d-b93e-3e725f3ecbea",
+            "title": "Problems Section",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "11450-4"
+                }
+              ]
+            },
+            "text": {
+              "status": "empty",
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+            },
+            "emptyReason": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/ValueSet/list-empty-reason",
+                  "code": "unavailable"
+                }
+              ]
+            }
+          },
+          {
+            "id": "450c6c0b-cdc4-46e7-8cbd-2ef878d3c9da",
+            "title": "Immunizations Section",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "11369-6"
+                }
+              ]
+            },
+            "text": {
+              "status": "empty",
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:969e8fbe-52b8-425f-8c4c-bbd6f7aa886f",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "969e8fbe-52b8-425f-8c4c-bbd6f7aa886f",
+        "identifier": [
+          {
+            "value": "16337361-9"
+          }
+        ],
+        "name": [
+          {
+            "text": "Aulo Agerio"
+          }
+        ],
+        "birthDate": "1905-08-23",
+        "contact": [
+          {
+            "name": {
+              "text": "Parent/Juan Medina"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

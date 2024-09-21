@@ -1,22 +1,72 @@
 package org.who.gdhcnvalidator.verify.hcert.icvp
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.hl7.fhir.r4.model.*
 import org.who.gdhcnvalidator.verify.BaseModel
+import org.who.gdhcnvalidator.verify.hcert.ddcc.IdentifierDeserializer
+import org.who.gdhcnvalidator.verify.hcert.ddcc.ReferenceDeserializer
 
 open class DvcVaccineDetails (
-    val doseNumber: CodeableConcept,
-    val disease: Coding?,
+    var doseNumber: CodeableConcept? = null,
+    var disease: Coding? = null,
 
-    val vaccineClassification: CodeableConcept,
-    val vaccineTradeItem: StringType?,
-    val date: DateTimeType?,
+    var vaccineClassification: CodeableConcept? = null,
+    var vaccineTradeItem: StringType? = null,
+    var date: DateTimeType? = null,
 
-    val clinicianName: StringType?,
-    val issuer: Reference?,
+    var clinicianName: StringType? = null,
 
-    val manufacturerId: Identifier?,
-    val manufacturer: StringType?,
+    @JsonDeserialize(using = ReferenceDeserializer::class)
+    var issuer: Reference? = null,
 
-    val batchNo: StringType?,
-    val validityPeriod: Period?,
-): BaseModel()
+    @JsonDeserialize(using = IdentifierDeserializer::class)
+    var manufacturerId: Identifier? = null,
+    var manufacturer: StringType? = null,
+
+    var batchNo: StringType? = null,
+    var validityPeriod: Period? = null,
+): BaseModel() {
+    override fun makeProperty(hash: Int, name: String?): Base {
+        return when (hash) {
+            "issuer".hashCode() -> Reference()
+            else -> super.makeProperty(hash, name)
+        }
+    }
+
+    override fun setProperty(hash: Int, name: String?, value: Base?): Base? {
+        println("DvcLogicalModel setProperty $hash $name $value")
+        when (hash) {
+            "doseNumber".hashCode() -> doseNumber = (value as? CodeableConcept)
+            "disease".hashCode() -> disease = (value as? Coding)
+            "vaccineClassification".hashCode() -> vaccineClassification = (value as? CodeableConcept)
+            "vaccineTradeItem".hashCode() -> vaccineTradeItem = (value as? StringType)
+            "date".hashCode() -> date = (value as? DateTimeType)
+            "clinicianName".hashCode() -> clinicianName = (value as? StringType)
+            "issuer".hashCode() -> issuer = (value as? Reference)
+            "manufacturerId".hashCode() -> manufacturerId = (value as? Identifier)
+            "manufacturer".hashCode() -> manufacturer = (value as? StringType)
+            "batchNo".hashCode() -> batchNo = (value as? StringType)
+            "validityPeriod".hashCode() -> validityPeriod = (value as? Period)
+            else -> super.setProperty(hash, name, value)
+        }
+        return value
+    }
+
+    override fun setProperty(name: String?, value: Base?): Base? {
+        when (name) {
+            "doseNumber" -> doseNumber = (value as? CodeableConcept)
+            "disease" -> disease = (value as? Coding)
+            "vaccineClassification" -> vaccineClassification = (value as? CodeableConcept)
+            "vaccineTradeItem" -> vaccineTradeItem = (value as? StringType)
+            "date" -> date = (value as? DateTimeType)
+            "clinicianName" -> clinicianName = (value as? StringType)
+            "issuer" -> issuer = (value as? Reference)
+            "manufacturerId" -> manufacturerId = (value as? Identifier)
+            "manufacturer" -> manufacturer = (value as? StringType)
+            "batchNo" -> batchNo = (value as? StringType)
+            "validityPeriod" -> validityPeriod = (value as? Period)
+            else -> super.setProperty(name, value)
+        }
+        return value
+    }
+}

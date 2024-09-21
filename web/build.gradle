@@ -27,7 +27,7 @@ tasks.register("stage") {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2'
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
@@ -37,7 +37,7 @@ dependencies {
     implementation('com.google.zxing:javase:3.5.3')
     implementation('org.apache.pdfbox:pdfbox:3.0.3')
     
-    implementation('ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.0.3')
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.0')
 
     implementation project(':verify')
     implementation project(":trust")

@@ -21,7 +21,7 @@ dependencies {
     implementation 'com.augustcellars.cose:cose-java:1.1.0'
 
     // Necessary to unpack SHC QR Codesjsonld-common-java
-    implementation 'com.nimbusds:nimbus-jose-jwt:9.25.6'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
     // using from Libs: Titanium jsonld requires valid DIDs. Since DIVOC uses invalid dids,
     // we are using a modified version that removes the skipping of invalid URIs on JsonLdToRdf
@@ -42,7 +42,23 @@ dependencies {
     implementation 'io.github.erdtman:java-json-canonicalization:1.1'
 
     // Necessary to Convert the QR into the FHIR Composite
-    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.0.3'
+    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.0'
+
+    // Makes FHIR Resources available when processing structure maps (must match Android FHIR Engine)
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r4:6.8.0')
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation:6.8.0')
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-caching-guava:6.8.0') {
+        exclude(group: 'com.google.guava', module: 'guava')
+    }
+    implementation('com.google.guava:guava:33.3.0-android')
+
+    // XML Loaders for the validation resouces
+    implementation('com.fasterxml.woodstox:woodstox-core:6.7.0')
+    implementation('xerces:xercesImpl:2.12.2')
+
+    // To unpack IG.tar.gz
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
 
     // Use BouncyCastle to not rely on each Android's version ability to unpack and load public keys
     // Android 10+ issues due to the move to Conscript on a older version of BC
@@ -52,7 +68,7 @@ dependencies {
     // Necessary to call JSON APIs (Download the Trust Registry)
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2'
 
-    implementation 'org.fhir:ucum:1.0.3'
+    implementation 'org.fhir:ucum:1.0.8'
 
     testImplementation "com.google.truth:truth:1.1.5"
     testImplementation 'junit:junit:4.13.2'

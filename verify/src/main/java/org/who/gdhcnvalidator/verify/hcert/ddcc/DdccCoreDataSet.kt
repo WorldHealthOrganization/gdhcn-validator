@@ -71,8 +71,8 @@ class MyMeta (
     }
 }
 
-object ReferenceDeserializer: JsonDeserializer<Base>() {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Base? {
+object ReferenceDeserializer: JsonDeserializer<Reference>() {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Reference? {
         val token: TreeNode = p.readValueAsTree()
 
         println("ReferenceDeserializer" + token.toString())
@@ -82,7 +82,7 @@ object ReferenceDeserializer: JsonDeserializer<Base>() {
                 id = token.toString()
             }
         } else {
-            return jacksonObjectMapper().readValue<Coding>(token.toString())
+            return jacksonObjectMapper().readValue<Reference>(token.toString())
         }
     }
 }

@@ -3,22 +3,27 @@ package org.who.gdhcnvalidator.verify.hcert
 import COSE.MessageTag
 import COSE.OneKey
 import COSE.Sign1Message
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.upokecenter.cbor.CBORObject
 import nl.minvws.encoding.Base45
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.Reference
 import org.who.gdhcnvalidator.QRDecoder
 import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.verify.hcert.dcc.DccMapper
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetTR
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetVS
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccMapper
+import org.who.gdhcnvalidator.verify.hcert.ddcc.ReferenceDeserializer
 import org.who.gdhcnvalidator.verify.hcert.healthlink.HealthLinkMapper
 import org.who.gdhcnvalidator.verify.hcert.icvp.DvcMapper
 import java.security.PublicKey
 import java.util.*
 import java.util.zip.InflaterInputStream
 import kotlin.time.measureTimedValue
+
 
 /**
  * Turns HC1 QR Codes into Fhir Objects
@@ -101,11 +106,17 @@ class HCertVerifier (private val registry: TrustRegistry) {
         return hcertPayload[COUNTRY_CODE]?.AsString()?.lowercase()
     }
 
+    fun mapper(): ObjectMapper {
+        val module = SimpleModule()
+        module.addDeserializer(Reference::class.java, ReferenceDeserializer)
+        return jacksonObjectMapper().registerModule(module)
+    }
+
     fun toFhir(hcertPayload: CBORObject): Bundle? {
         val hcert = hcertPayload[EU_DCC_CODE]
         if (hcert != null) {
             try {
-                val payload = jacksonObjectMapper().readValue(
+                val payload = mapper().readValue(
                     hcertPayload.ToJSONString(),
                     CWTPayload::class.java
                 )

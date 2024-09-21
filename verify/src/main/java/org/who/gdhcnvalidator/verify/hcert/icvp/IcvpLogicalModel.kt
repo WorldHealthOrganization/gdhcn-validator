@@ -11,5 +11,6 @@ open class IcvpLogicalModel(
     nid: StringType?,
     guardian: StringType?,
 
-    vaccineDetails: List<DvcVaccineDetails>
-): DvcLogicalModel(name, dob, sex, nationality, nid, guardian, vaccineDetails)
+    issuer: Reference?,
+    vaccineDetails: DvcVaccineDetails
+): DvcLogicalModel(name, dob, sex, nationality, nid, guardian, issuer, vaccineDetails)
