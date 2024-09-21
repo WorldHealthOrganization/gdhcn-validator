@@ -1,31 +1,17 @@
 package org.who.gdhcnvalidator.services.cql
 
 import org.cqframework.cql.cql2elm.CqlTranslator
-import org.cqframework.cql.cql2elm.CqlTranslatorOptions
 import org.cqframework.cql.cql2elm.LibraryManager
 import org.cqframework.cql.cql2elm.ModelManager
 import org.cqframework.cql.cql2elm.quick.FhirLibrarySourceProvider
-import org.fhir.ucum.UcumEssenceService
 import org.hl7.fhir.r4.model.Attachment
 import org.hl7.fhir.r4.model.Enumerations
 import org.hl7.fhir.r4.model.Library
-import org.opencds.cqf.cql.engine.serializing.CqlLibraryReaderFactory
 import java.io.InputStream
-import java.io.StringReader
 
 object CqlBuilder {
   fun load(asset: InputStream): String {
     return asset.bufferedReader().use { bufferReader -> bufferReader.readText() }
-  }
-
-  /**
-   * Compiles a CQL InputStream to ELM
-   *
-   * @param cqlText the CQL Library
-   * @return a [CqlTranslator] object that contains the elm representation of the library inside it.
-   */
-  fun compile(cqlText: InputStream): CqlTranslator {
-    return compile(load(cqlText))
   }
 
   /**
@@ -44,10 +30,7 @@ object CqlBuilder {
     val translator =
       CqlTranslator.fromText(
         cqlText,
-        modelManager,
         libraryManager,
-        UcumEssenceService(this::class.java.getResourceAsStream("/ucum-essence.xml")),
-        *CqlTranslatorOptions.defaultOptions().options.toTypedArray()
       )
 
     // Helper makes sure the test CQL compiles. Reports an error if it doesn't
@@ -115,25 +98,6 @@ object CqlBuilder {
       attachmentJson?.let { addContent(it) }
       attachmentXml?.let { addContent(it) }
     }
-  }
-
-  /**
-   * Parses a JSON representation of an ELM Library and assembles into a FHIR Library
-   *
-   * @param jsonElm the JSON representation of the ELM Library
-   * @return the assembled FHIR Library
-   */
-  fun buildJsonLib(jsonElm: InputStream): Library {
-    val strLib = load(jsonElm)
-    val elmLibrary =
-      CqlLibraryReaderFactory.getReader("application/elm+json").read(StringReader(strLib))
-    return assembleFhirLib(
-      null,
-      strLib,
-      null,
-      elmLibrary.identifier.id,
-      elmLibrary.identifier.version
-    )
   }
 
   /**

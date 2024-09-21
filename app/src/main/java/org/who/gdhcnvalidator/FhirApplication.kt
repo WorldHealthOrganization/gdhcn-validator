@@ -7,14 +7,17 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.FhirEngineConfiguration
 import com.google.android.fhir.FhirEngineProvider
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.google.android.fhir.knowledge.KnowledgeManager
+import com.google.android.fhir.testing.jsonParser
+import com.google.android.fhir.workflow.FhirOperator
+import kotlinx.coroutines.runBlocking
+import org.attoparser.dom.DOMWriter.writeText
+import org.hl7.fhir.r4.model.BaseResource
 import org.hl7.fhir.r4.model.Library
 import org.who.gdhcnvalidator.services.cql.CqlBuilder
-import org.who.gdhcnvalidator.services.cql.FhirOperator
 import org.who.gdhcnvalidator.trust.CompoundRegistry
 import org.who.gdhcnvalidator.trust.TrustRegistryFactory
+import java.io.File
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
@@ -23,6 +26,7 @@ class FhirApplication : Application() {
 
   // Only initiate the FhirEngine when used for the first time, not when the app is created.
   private val fhirEngine: FhirEngine by lazy(inSync) { timed( "FhirEngine", ::constructFhirEngine) }
+  private val knowledgeManager: KnowledgeManager by lazy(inSync) { timed("KnowledgeManager", ::constructKnowledgeManager) }
   private val fhirContext: FhirContext by lazy(inSync) { timed( "FhirContext", ::loadContext) }
   private val fhirOperator: FhirOperator by lazy(inSync) { timed( "FhirOperator", ::constructOperator) }
   private val subscribedIGs: List<Library> by lazy(inSync) { timed( "CQL Libs", ::compileIGs) }
@@ -46,19 +50,38 @@ class FhirApplication : Application() {
     return FhirEngineProvider.getInstance(this)
   }
 
+  private fun constructKnowledgeManager(): KnowledgeManager {
+    return KnowledgeManager.create(context = this, inMemory = true)
+  }
+
   private fun loadContext(): FhirContext {
     return FhirContext.forCached(FhirVersionEnum.R4)
   }
 
   private fun constructOperator(): FhirOperator {
-    return FhirOperator(fhirContext, fhirEngine)
+    return FhirOperator.Builder(this)
+      .fhirEngine(fhirEngine)
+      .fhirContext(fhirContext)
+      .knowledgeManager(knowledgeManager)
+      .build()
+  }
+
+  private fun writeToFile(resource: BaseResource): File {
+    return File(this.filesDir, resource.id).apply {
+      this.parentFile?.mkdirs()
+      writeText(jsonParser.encodeResourceToString(resource))
+    }
   }
 
   private fun compileIGs(): List<Library> {
+    //val ourLib = FhirNpmPackage("org.who.gdhcnvalidator", "1.0.0")
     val libs = availableIGs.map { CqlBuilder.compileAndBuild(resources.assets.open(it)) }
-    libs.forEach {
-      fhirOperator.loadLib(it)
+    runBlocking {
+      libs.forEach {
+        knowledgeManager.index(writeToFile(it))
+      }
     }
+
     return libs
   }
 

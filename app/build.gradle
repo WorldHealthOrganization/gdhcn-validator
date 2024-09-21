@@ -37,6 +37,8 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
     }
     kotlinOptions {
         jvmTarget = '17'
@@ -63,19 +65,54 @@ android {
     }
 }
 
-configurations {
-    implementation {
-        exclude module: "xpp3"
-        exclude module: "xpp3_min"
-        exclude module: "xmlpull"
-        exclude module: "javax.json"
-        exclude module: "jcl-over-slf4j"
-        exclude group: "org.apache.httpcomponents"
-        exclude module: "antlr4"
+configurations.configureEach {
+    exclude module: "xpp3"
+    exclude module: "xpp3_min"
+    exclude module: "xmlpull"
+    exclude module: "javax.json"
+    exclude module: "jcl-over-slf4j"
+    exclude group: "org.apache.httpcomponents"
+    exclude module: "antlr4"
+
+    resolutionStrategy {
+        force 'com.fasterxml.jackson.core:jackson-core:2.17.2'
+        force 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+        force 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
+        force 'com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.17.2'
+        force 'com.fasterxml.jackson.datatype:jackson-datatype-jsr:2.17.2'
+        force 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
+        force 'com.fasterxml.jackson:jackson-bom:2.17.2'
+        force 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2'
+
+        force 'com.google.guava:guava:33.3.0-android'
+
+        force 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r4:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-validation:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-caching-guava:6.8.3'
+
+        force 'ca.uhn.hapi.fhir:hapi-fhir-base:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-client:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-structures-dstu2:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-structures-r5:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-validation-resources-dstu3:6.8.3'
+        force 'ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r5:6.8.3'
+
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.0.22.2'
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.0.22.2'
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.0.22.2'
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.0.22.2'
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.0.22.2'
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.0.22.2'
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.0.22.2'
+        force 'ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.0.22.2'
     }
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
+
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
@@ -117,24 +154,23 @@ dependencies {
     // Necessary to Load CQL Engine's evaluation classes generated with JAXB (Versions must match)
     implementation 'org.jvnet.jaxb2_commons:jaxb2-basics:0.12.0'
 
-    // FHIR Engine
-    implementation 'com.google.android.fhir:engine:0.1.0-beta02'
-    // CQL Engine
-    implementation 'com.google.android.fhir:workflow:0.1.0-alpha02'
+    // Necessary to Convert the QR into the FHIR Composite
+    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.0'
 
-    // Necessary to Execute CQL rules
-    implementation 'org.opencds.cqf.cql:engine:2.1.0'
-    implementation 'org.opencds.cqf.cql:engine.jackson:2.1.0'
-    implementation 'org.opencds.cqf.cql:engine.fhir:2.1.0'
-    implementation 'org.opencds.cqf.cql:evaluator.fhir:2.1.0'
-    implementation 'org.opencds.cqf.cql:evaluator.builder:2.1.0'
-    implementation 'org.opencds.cqf.cql:evaluator.plandefinition:2.1.0'
-    implementation 'org.opencds.cqf.cql:evaluator.measure:2.1.0'
-    implementation 'org.opencds.cqf.cql:evaluator.measure-hapi:2.1.0'
+    // FHIR Engine
+    implementation ('com.google.android.fhir:engine:1.0.0')
+    implementation ('com.google.android.fhir:knowledge:0.1.0-beta01')
+    // CQL Engine
+    implementation ('com.google.android.fhir:workflow:0.1.0-alpha04')
+
+    implementation 'org.opencds.cqf.fhir:cqf-fhir-cr:3.0.0-PRE9'
+    implementation 'org.opencds.cqf.fhir:cqf-fhir-jackson:3.0.0-PRE9'
+    implementation 'org.opencds.cqf.fhir:cqf-fhir-utility:3.0.0-PRE9'
 
     // Tests outside Android can process CQL.
     // Good to test new rules without having to convert to JSON
-    testImplementation group: 'info.cqframework', name: 'cql-to-elm', version: '2.2.0'
+    // testImplementation group: 'info.cqframework', name: 'cql-to-elm', version: '2.2.0'
+
     testImplementation 'androidx.test:core-ktx:1.6.1'
     testImplementation 'org.robolectric:robolectric:4.13'
     testImplementation project(':test-resources')

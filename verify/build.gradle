@@ -42,12 +42,12 @@ dependencies {
     implementation 'io.github.erdtman:java-json-canonicalization:1.1'
 
     // Necessary to Convert the QR into the FHIR Composite
-    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.0'
+    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3'
 
     // Makes FHIR Resources available when processing structure maps (must match Android FHIR Engine)
-    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r4:6.8.0')
-    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation:6.8.0')
-    implementation('ca.uhn.hapi.fhir:hapi-fhir-caching-guava:6.8.0') {
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r4:6.8.3')
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation:6.8.3')
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-caching-guava:6.8.3') {
         exclude(group: 'com.google.guava', module: 'guava')
     }
     implementation('com.google.guava:guava:33.3.0-android')
