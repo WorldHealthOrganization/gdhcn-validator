@@ -1,12 +1,17 @@
 package org.who.gdhcnvalidator.verify
 
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.StreamReadFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
+import org.who.gdhcnvalidator.QRDecoder
 import org.who.gdhcnvalidator.test.BaseTrustRegistryTest
 import org.who.gdhcnvalidator.verify.divoc.DivocVerifier
+import org.who.gdhcnvalidator.verify.hcert.CWTPayload
 import org.who.gdhcnvalidator.verify.hcert.HCertVerifier
 import org.who.gdhcnvalidator.verify.icao.IcaoVerifier
 import org.who.gdhcnvalidator.verify.shc.ShcVerifier
@@ -57,6 +62,15 @@ class QRUnpackTest: BaseTrustRegistryTest() {
 
         val dcc = cwt!![-260][1]
         jsonEquals(open("EUQR1Unpacked.txt"), dcc.toString())
+    }
+
+    @Test
+    fun unpackDVC() {
+        val qr1 = open("DVCTestQR.txt")
+        val cwt = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(cwt)
+
+        jsonEquals(open("DVCTestQRUnpacked.json"), cwt!!.ToJSONString())
     }
 
     @Test
