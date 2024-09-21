@@ -1,7 +1,6 @@
 package org.who.gdhcnvalidator.verify.hcert.icvp
 
 import org.hl7.fhir.r4.model.*
-import org.who.gdhcnvalidator.verify.BaseModel
 
 open class IcvpEventLogicalModel(
     name: StringType?,

@@ -1,6 +1,5 @@
 package org.who.gdhcnvalidator.verify.hcert.dcc.logical
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.TreeNode
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -8,15 +7,12 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.bouncycastle.asn1.x500.style.RFC4519Style.name
 import org.hl7.fhir.r4.model.*
 import org.who.gdhcnvalidator.verify.BaseModel
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccCertificate
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccCoreDataSet
 import org.who.gdhcnvalidator.verify.hcert.ddcc.IdentifierDeserializer
 import org.who.gdhcnvalidator.verify.hcert.ddcc.MyMeta
-import org.who.gdhcnvalidator.verify.shc.DecimalToDataTimeDeserializer
-import kotlin.reflect.full.declaredMemberProperties
 
 
 // from https://build.fhir.org/ig/WorldHealthOrganization/ddcc/StructureDefinition-DDCCCoreDataSetVS.html
