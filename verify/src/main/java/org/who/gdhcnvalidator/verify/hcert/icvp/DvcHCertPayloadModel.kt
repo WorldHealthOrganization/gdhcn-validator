@@ -19,7 +19,7 @@ class HCertDVC(
 ): BaseModel()
 
 class DvcHCertVaccination(
-    val `@id`:StringType?,   // Unique id for inter-element referencing
+    //val `@id`:StringType?,   // Unique id for inter-element referencing
     val extension: List<Extension>?, // Additional content defined by implementations
     val modifierExtension: List<Extension>?, // Extensions that cannot be ignored even if unrecognized
 
