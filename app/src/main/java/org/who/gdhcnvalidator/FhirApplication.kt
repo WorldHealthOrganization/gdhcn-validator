@@ -11,7 +11,6 @@ import com.google.android.fhir.knowledge.KnowledgeManager
 import com.google.android.fhir.testing.jsonParser
 import com.google.android.fhir.workflow.FhirOperator
 import kotlinx.coroutines.runBlocking
-import org.attoparser.dom.DOMWriter.writeText
 import org.hl7.fhir.r4.model.BaseResource
 import org.hl7.fhir.r4.model.Library
 import org.who.gdhcnvalidator.services.cql.CqlBuilder

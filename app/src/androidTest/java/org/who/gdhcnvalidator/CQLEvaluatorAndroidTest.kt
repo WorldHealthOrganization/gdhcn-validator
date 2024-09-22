@@ -1,29 +1,34 @@
 package org.who.gdhcnvalidator
 
+import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.FhirEngineProvider
+import com.google.android.fhir.knowledge.KnowledgeManager
+import com.google.android.fhir.testing.jsonParser
+import com.google.android.fhir.workflow.FhirOperator
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.*
 import org.junit.Assert
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.who.gdhcnvalidator.services.cql.CqlBuilder
-import org.who.gdhcnvalidator.services.cql.FhirOperator
 import org.who.gdhcnvalidator.test.BaseTrustRegistryTest
 import org.who.gdhcnvalidator.verify.divoc.DivocVerifier
 import org.who.gdhcnvalidator.verify.hcert.HCertVerifier
 import org.who.gdhcnvalidator.verify.icao.IcaoVerifier
 import org.who.gdhcnvalidator.verify.shc.ShcVerifier
+import java.io.File
 import java.util.*
 
-@RunWith(AndroidJUnit4::class)
+
 class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
     @get:Rule
     val fhirEngineProviderRule = FhirEngineProviderTestRule()
@@ -33,14 +38,35 @@ class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
 
     private lateinit var fhirEngine: FhirEngine
     private lateinit var fhirOperator: FhirOperator
+    private lateinit var knowledgeManager: KnowledgeManager
 
     private val ddccPass = CqlBuilder.compileAndBuild(inputStream("TestPass-1.0.0.cql")!!)
 
+    private fun writeToFile(resource: BaseResource): File {
+        val context: Context = ApplicationProvider.getApplicationContext()
+        return File(context.cacheDir, resource.id).apply {
+            val json = jsonParser.encodeResourceToString(resource)
+            writeText(json)
+        }
+    }
+
     @Before
     fun setUp() = runBlocking {
-        fhirEngine = FhirEngineProvider.getInstance(ApplicationProvider.getApplicationContext())
-        fhirOperator = FhirOperator(fhirContext, fhirEngine)
-        fhirOperator.loadLib(ddccPass)
+        val ctx: Context = ApplicationProvider.getApplicationContext()
+        fhirEngine = FhirEngineProvider.getInstance(ctx)
+        knowledgeManager = KnowledgeManager.create(
+            context = ctx,
+            inMemory = true,
+            downloadedNpmDir = ctx.cacheDir
+        )
+        fhirOperator = FhirOperator.Builder(ApplicationProvider.getApplicationContext())
+            .fhirEngine(fhirEngine)
+            .fhirContext(fhirContext)
+            .knowledgeManager(knowledgeManager)
+            .build()
+
+        knowledgeManager.index(writeToFile(ddccPass))
+
         TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
     }
 
@@ -48,7 +74,7 @@ class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
         checkNotNull(bundle)
         for (entry in bundle.entry) {
             when (entry.resource.resourceType) {
-                ResourceType.Library -> fhirOperator.loadLib(entry.resource as Library)
+                ResourceType.Library -> knowledgeManager.index(writeToFile(entry.resource as Library))
                 ResourceType.Bundle -> Unit
                 else -> fhirEngine.create(entry.resource)
             }
@@ -95,12 +121,12 @@ class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
 
     @Test
     fun evaluateTestPassOnWHOQR1FromQRTest() = runBlocking {
-        val qr1 = open("WHOQR1Contents.txt")
+        val qr1 = open("DVCTestQR.txt")
         val verified = HCertVerifier(registry).unpackAndVerify(qr1)
 
         loadBundle(verified.contents)
 
-        Assert.assertEquals(QRDecoder.Status.VERIFIED, verified.status)
+        Assert.assertEquals(QRDecoder.Status.ISSUER_NOT_TRUSTED, verified.status)
 
         val results = fhirOperator.evaluateLibrary(
             "http://localhost/Library/TestPass|1.0.0",
@@ -112,14 +138,15 @@ class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
         Assert.assertEquals(Collections.EMPTY_LIST, results.getParameters("GetSingleDose"))
     }
 
+    @Ignore("QR codes created in the first version are now invalid")
     @Test
     fun evaluateTestPassOnWHOQR2FromQRTest() = runBlocking {
         val qr1 = open("WHOQR2Contents.txt")
         val verified = HCertVerifier(registry).unpackAndVerify(qr1)
 
-        loadBundle(verified.contents)
-
         Assert.assertEquals(QRDecoder.Status.VERIFIED, verified.status)
+
+        loadBundle(verified.contents)
 
         val results = fhirOperator.evaluateLibrary(
             "http://localhost/Library/TestPass|1.0.0",

@@ -1,18 +1,16 @@
 package org.who.gdhcnvalidator
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import org.hl7.fhir.r4.model.*
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 import org.who.gdhcnvalidator.services.cql.CqlBuilder
 import org.who.gdhcnvalidator.test.BaseTrustRegistryTest
 import java.util.*
 
-@RunWith(RobolectricTestRunner::class)
 class CQLCompilerTest: BaseTrustRegistryTest() {
     @get:Rule
     val fhirEngineProviderRule = FhirEngineProviderTestRule()
