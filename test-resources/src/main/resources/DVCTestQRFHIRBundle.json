@@ -15,7 +15,6 @@
       "fullUrl": "urn:uuid:a9152ef1-efdd-4e3e-b8c3-d02153afc059",
       "resource": {
         "resourceType": "Composition",
-        "id": "a9152ef1-efdd-4e3e-b8c3-d02153afc059",
         "status": "final",
         "type": {
           "coding": [
@@ -116,16 +115,39 @@
             "text": {
               "status": "empty",
               "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
-            }
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:4fad3e42-d4fc-4a12-bf25-732ea47aa147"
+              }
+            ]
           }
         ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:4fad3e42-d4fc-4a12-bf25-732ea47aa147",
+      "resource": {
+        "resourceType": "Immunization",
+        "status": "completed",
+        "vaccineCode": {
+          "coding": [
+            {
+              "system": "http://id.who.int/icd/release/11/mms",
+              "code": "XM0N24"
+            }
+          ]
+        },
+        "patient": {
+          "reference": "urn:uuid:969e8fbe-52b8-425f-8c4c-bbd6f7aa886f"
+        },
+        "lotNumber": "123123123"
       }
     },
     {
       "fullUrl": "urn:uuid:969e8fbe-52b8-425f-8c4c-bbd6f7aa886f",
       "resource": {
         "resourceType": "Patient",
-        "id": "969e8fbe-52b8-425f-8c4c-bbd6f7aa886f",
         "identifier": [
           {
             "value": "16337361-9"
