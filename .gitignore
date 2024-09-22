@@ -32,6 +32,8 @@ proguard/
 
 # Android Studio Navigation editor temp files
 .navigation/
+.kotlin/
+.idea/
 
 # Android Studio captures folder
 captures/
