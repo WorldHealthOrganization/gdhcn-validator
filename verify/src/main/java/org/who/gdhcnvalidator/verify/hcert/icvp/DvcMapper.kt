@@ -14,6 +14,7 @@ import org.who.gdhcnvalidator.verify.BaseMapper
 import org.who.gdhcnvalidator.verify.DualHapiWorkerContext
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.HCertDVC
 import java.util.UUID
+import kotlin.time.measureTimedValue
 
 /**
  * Translates a QR CBOR object into FHIR Objects
@@ -44,14 +45,21 @@ class DvcMapper: BaseMapper() {
         val map1 = ivcpIG.getTransform("http://smart.who.int/icvp/StructureMap/DVCClaimtoDVCLM")
         val map2 = ivcpIG.getTransform("http://smart.who.int/icvp/StructureMap/DVCLMToIPS")
 
-        return MyBundle().apply {
+        val bundle = MyBundle().apply {
+            // TODO: for some reason it doesn't support this full map
             //myUtils.transform(ivcpIG, dvm, map, this)
-
             val model = DvcLogicalModel().apply {
                 myUtils.transform(ivcpIG, dvm, map1, this)
             }
             myUtils.transform(ivcpIG, model, map2, this)
         }
+
+        val (bundle2, elapsedSerialization) = measureTimedValue {
+            val str = processor.encodeResourceToString(bundle)
+            processor.parseResource(str) as Bundle
+        }
+
+        return bundle2
     }
 }
 
