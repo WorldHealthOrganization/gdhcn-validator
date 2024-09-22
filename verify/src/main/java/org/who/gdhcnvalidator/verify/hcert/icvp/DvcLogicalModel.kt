@@ -31,8 +31,13 @@ open class DvcLogicalModel(
     }
 
     override fun makeProperty(hash: Int, name: String?): Base {
+        println("DvcLogicalModel makeProperty")
         return when (hash) {
-            "vaccineDetails".hashCode() -> DvcVaccineDetails()
+            "vaccineDetails".hashCode() -> {
+                val newVac = DvcVaccineDetails()
+                vaccineDetails = newVac
+                newVac
+            }
             else -> super.makeProperty(hash, name)
         }
     }

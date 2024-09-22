@@ -27,8 +27,13 @@ open class DvcVaccineDetails (
     var validityPeriod: Period? = null,
 ): BaseModel() {
     override fun makeProperty(hash: Int, name: String?): Base {
+        println("DvcVaccineDetails issuer")
         return when (hash) {
-            "issuer".hashCode() -> Reference()
+            "issuer".hashCode() -> {
+                val newRef = Reference()
+                issuer = newRef
+                newRef
+            }
             else -> super.makeProperty(hash, name)
         }
     }
