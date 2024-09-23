@@ -42,7 +42,7 @@
             },
             "text": {
               "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
             },
             "emptyReason": {
               "coding": [
@@ -66,7 +66,7 @@
             },
             "text": {
               "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
             },
             "emptyReason": {
               "coding": [
@@ -90,7 +90,7 @@
             },
             "text": {
               "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
             },
             "emptyReason": {
               "coding": [
@@ -114,7 +114,7 @@
             },
             "text": {
               "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">narrative not available</div>"
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
             },
             "entry": [
               {
