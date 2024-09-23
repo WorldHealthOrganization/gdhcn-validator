@@ -7,7 +7,7 @@ import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.trust.didweb.GDHCNTrustRegistry.Companion.ACCEPTANCE_REGISTRY
 import java.net.URI
 
-class GDHCNTrustRegistryTest {
+class DDCCTrustRegistryTest {
     companion object {
         const val PROD_KEY_ID = "did:web:raw.githubusercontent.com:WorldHealthOrganization:ddcc-trust:main:dist:prod:u:k"
         const val TEST_KEY_ID = "did:web:raw.githubusercontent.com:WorldHealthOrganization:ddcc-trust:main:dist:test:u:k"
