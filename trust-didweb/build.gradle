@@ -16,12 +16,7 @@ dependencies {
     implementation project(":trust")
 
     // Provides the DID Document object
-    implementation ('decentralized-identity:did-common-java:1.2.0') {
-        // using from Libs remove when this PR gets approved: https://github.com/decentralized-identity/jsonld-common-java/pull/6
-        exclude group: 'com.apicatalog', module: 'titanium-json-ld'
-    }
-
-    implementation group: 'com.apicatalog', name: 'titanium-json-ld', version: '1.4.1'
+    implementation 'decentralized-identity:did-common-java:1.11.0'
 
     // Necessary to call JSON APIs (Parse the DID Document)
     implementation 'com.fasterxml.jackson.core:jackson-core:2.17.2'
