@@ -91,12 +91,12 @@ class HCertVerifier (private val registry: TrustRegistry) {
         }
     }
 
-    fun unpack(qr: String): CBORObject? {
+    fun unpack(qr: String): String? {
         val hc1Decoded = prefixDecode(qr)
         val decodedBytes = base45Decode(hc1Decoded) ?: return null
         val deflatedBytes = deflate(decodedBytes) ?: return null
         val signedMessage = decodeSignedMessage(deflatedBytes) ?: return null
-        return getContent(signedMessage)
+        return unpack(signedMessage, getContent(signedMessage))
     }
 
     val EU_DCC_CODE = -260

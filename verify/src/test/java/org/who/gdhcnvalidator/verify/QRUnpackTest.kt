@@ -1,17 +1,12 @@
 package org.who.gdhcnvalidator.verify
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.StreamReadFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
-import org.who.gdhcnvalidator.QRDecoder
 import org.who.gdhcnvalidator.test.BaseTrustRegistryTest
 import org.who.gdhcnvalidator.verify.divoc.DivocVerifier
-import org.who.gdhcnvalidator.verify.hcert.CWTPayload
 import org.who.gdhcnvalidator.verify.hcert.HCertVerifier
 import org.who.gdhcnvalidator.verify.icao.IcaoVerifier
 import org.who.gdhcnvalidator.verify.shc.ShcVerifier
@@ -33,64 +28,76 @@ class QRUnpackTest: BaseTrustRegistryTest() {
     @Test
     fun unpackWHOQR1() {
         val qr1 = open("WHOQR1Contents.txt")
-        val verified = HCertVerifier(registry).unpack(qr1)
-        assertNotNull(verified)
-        jsonEquals(open("WHOQR1Unpacked.json"), verified.toString())
+        val unpacked = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(unpacked)
+        jsonEquals(open("WHOQR1Unpacked.json"), unpacked!!)
     }
 
     @Test
     fun unpackWHOQR2() {
         val qr2 = open("WHOQR2Contents.txt")
-        val verified = HCertVerifier(registry).unpack(qr2)
-        assertNotNull(verified)
-        jsonEquals(open("WHOQR2Unpacked.json"), verified.toString().replace(": undefined", ": null"))
+        val unpacked = HCertVerifier(registry).unpack(qr2)
+        assertNotNull(unpacked)
+        jsonEquals(open("WHOQR2Unpacked.json"), unpacked!!.replace(": undefined", ": null"))
     }
 
     @Test
     fun unpackSingaporePCR() {
         val qr2 = open("WHOSingaporePCRContents.txt")
-        val verified = HCertVerifier(registry).unpack(qr2)
-        assertNotNull(verified)
-        jsonEquals(open("WHOSingaporePCRUnpacked.json"), verified.toString().replace(": undefined", ": null"))
+        val unpacked = HCertVerifier(registry).unpack(qr2)
+        assertNotNull(unpacked)
+        jsonEquals(open("WHOSingaporePCRUnpacked.json"), unpacked!!.replace(": undefined", ": null"))
     }
 
     @Test
     fun unpackEUQR1() {
         val qr1 = open("EUQR1Contents.txt")
-        val cwt = HCertVerifier(registry).unpack(qr1)
-        assertNotNull(cwt)
-
-        val dcc = cwt!![-260][1]
-        jsonEquals(open("EUQR1Unpacked.txt"), dcc.toString())
+        val unpacked = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(unpacked)
+        jsonEquals(open("EUQR1Unpacked.txt"), unpacked!!)
     }
 
     @Test
-    fun unpackDVC() {
+    fun unpackDVC1() {
         val qr1 = open("DVCTestQR.txt")
-        val cwt = HCertVerifier(registry).unpack(qr1)
-        assertNotNull(cwt)
+        val unpacked = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(unpacked)
 
-        jsonEquals(open("DVCTestQRUnpacked.json"), cwt!!.ToJSONString())
+        jsonEquals(open("DVCTestQRUnpacked.json"), unpacked!!)
+    }
+
+    @Test
+    fun unpackDVC2() {
+        val qr1 = open("DVCTest2QR.txt")
+        val unpacked = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(unpacked)
+
+        jsonEquals(open("DVCTest2QRUnpacked.json"), unpacked!!)
+    }
+
+    @Test
+    fun unpackDVC3() {
+        val qr1 = open("DVCTest3QR.txt")
+        val unpacked = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(unpacked)
+
+        jsonEquals(open("DVCTest3QRUnpacked.json"), unpacked!!)
     }
 
     @Test
     fun unpackEUItalyAcceptanceQR() {
         val qr1 = open("EUItalyAcceptanceQRContents.txt")
-        val cwt = HCertVerifier(registry).unpack(qr1)
-        assertNotNull(cwt)
-
-        val dcc = cwt!![-260][1]
-        jsonEquals(open("EUItalyAcceptanceQRUnpacked.txt"), dcc.toString())
+        val unpacked = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(unpacked)
+        jsonEquals(open("EUItalyAcceptanceQRUnpacked.json"), unpacked!!)
     }
 
     @Test
     fun unpackEUIndonesia() {
         val qr1 = open("EUIndonesiaContents.txt")
-        val cwt = HCertVerifier(registry).unpack(qr1)
-        assertNotNull(cwt)
-
-        val dcc = cwt!![-260][1]
-        jsonEquals(open("EUIndonesiaUnpacked.txt"), dcc.toString())
+        val unpacked = HCertVerifier(registry).unpack(qr1)
+        assertNotNull(unpacked)
+        jsonEquals(open("EUIndonesiaUnpacked.json"), unpacked!!)
     }
 
     @Test
