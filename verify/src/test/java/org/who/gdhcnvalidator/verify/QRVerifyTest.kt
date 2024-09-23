@@ -117,6 +117,11 @@ class QRVerifyTest: BaseTrustRegistryTest() {
     }
 
     @Test
+    fun verifyDVC3() {
+        verify("DVCTest3QR.txt", "DVCTest3QRFHIRBundle.json", QRDecoder.Status.VERIFIED)
+    }
+
+    @Test
     fun verifyDCCUruguay() {
         verify("EUUruguayContents.txt", "EUUruguayFHIRBundle.json", QRDecoder.Status.ISSUER_NOT_TRUSTED)
     }
