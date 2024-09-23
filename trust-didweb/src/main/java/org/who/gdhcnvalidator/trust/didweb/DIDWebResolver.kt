@@ -11,9 +11,7 @@ class DIDWebResolver {
     val DOC_FILE = "/did.json"
     val DOC_PATH = "/.well-known/did.json"
 
-    class DidResolution(
-        val did: URI
-    ) {
+    class DidResolution(val did: URI) {
         var url: URL? = null
         var didDocument: DIDDocument? = null
         var didDocumentMetadata: String? = null
@@ -49,7 +47,7 @@ class DIDWebResolver {
 
         val url = toUrl(parsed)
 
-        var didDocument = try {
+        val didDocument = try {
             jacksonObjectMapper().readValue(url, DIDDocument::class.java)
         } catch (error: Exception) {
             return DidResolution(did).apply {
@@ -71,4 +69,6 @@ class DIDWebResolver {
             this.didResolutionMetadata.contentType = contentType
         }
     }
+
+
 }

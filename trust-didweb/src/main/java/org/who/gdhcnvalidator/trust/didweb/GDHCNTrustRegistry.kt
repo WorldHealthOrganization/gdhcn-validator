@@ -2,7 +2,10 @@ package org.who.gdhcnvalidator.trust.didweb
 
 import com.nimbusds.jose.jwk.AsymmetricJWK
 import com.nimbusds.jose.jwk.JWK
+import foundation.identity.did.DIDDocument
 import foundation.identity.did.VerificationMethod
+import foundation.identity.did.jsonld.DIDKeywords
+import foundation.identity.jsonld.JsonLDUtils
 import io.ipfs.multibase.Base58
 import io.ipfs.multibase.Multibase
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -31,18 +34,14 @@ class GDHCNTrustRegistry : TrustRegistry {
         const val TEST_KEY_ID = "did:web:tng-cdn-uat.who.int:trustlist"
         const val DEV_KEY_ID = "did:web:tng-cdn-dev.who.int:trustlist"
 
-        const val PROD_DID = "https://tng-cdn.who.int/trustlist/did.json"
-        const val ACCEPTANCE_DID = "https://tng-cdn-uat.who.int/trustlist/did.json"
-        const val DEV_DID = "https://tng-cdn-dev.who.int/trustlist/did.json"
-
-        val PRODUCTION_REGISTRY = RegistryEntity("WHO GDHCN Production", TrustRegistry.Scope.PRODUCTION, URI(PROD_DID), PROD_KEY_ID, null)
-        val ACCEPTANCE_REGISTRY = RegistryEntity("WHO GDHCN Acceptance", TrustRegistry.Scope.ACCEPTANCE_TEST, URI(ACCEPTANCE_DID), TEST_KEY_ID, null)
-        val DEV_STAGING_REGISTRY = RegistryEntity("WHO GDHCN Development", TrustRegistry.Scope.DEV_STAGING, URI(DEV_DID), DEV_KEY_ID, null)
+        val PRODUCTION_REGISTRY = RegistryEntity("WHO GDHCN Production", TrustRegistry.Scope.PRODUCTION, URI(PROD_KEY_ID), PROD_KEY_ID, null)
+        val ACCEPTANCE_REGISTRY = RegistryEntity("WHO GDHCN Acceptance", TrustRegistry.Scope.ACCEPTANCE_TEST, URI(TEST_KEY_ID), TEST_KEY_ID, null)
+        val DEV_STAGING_REGISTRY = RegistryEntity("WHO GDHCN Development", TrustRegistry.Scope.DEV_STAGING, URI(DEV_KEY_ID), DEV_KEY_ID, null)
     }
 
     class LoadedRegistry(
         entity: RegistryEntity,
-        val entries: MutableMap<URI, TrustedEntity> = mutableMapOf()
+        val entries: MutableMap<URI, TrustedEntity> = mutableMapOf(),
     ): ILoadedRegistry(entity) {
         override fun resolve(framework: TrustRegistry.Framework, keyId: String): TrustedEntity? {
             println("${entity.name}: Resolving (active: $active) $framework $keyId -> ${entity.keyIdPrefix}:$keyId")
@@ -97,17 +96,31 @@ class GDHCNTrustRegistry : TrustRegistry {
         return null
     }
 
+    fun verificationMethods(didDocument: DIDDocument?): List<VerificationMethod>? {
+        if (didDocument == null) return null
+
+        val list = JsonLDUtils.jsonLdGetJsonArray(didDocument.jsonObject, DIDKeywords.JSONLD_TERM_VERIFICATIONMETHOD)
+
+        return list.filterIsInstance<Map<String, Any>>().map {
+            VerificationMethod.fromJsonObject(it)
+        }
+    }
+
     fun load(registryURL: RegistryEntity) {
         try {
+            println("TIME: Load ${registryURL.resolvableURI}")
             val loading = LoadedRegistry(registryURL)
 
             val (didDocumentResolution, elapsedServerDownload) = measureTimedValue {
                 DIDWebResolver().resolve(registryURL.resolvableURI)
             }
-            println("TIME: Trust Downloaded in $elapsedServerDownload from ${registryURL.resolvableURI}")
+
+            val methods = verificationMethods(didDocumentResolution?.didDocument)
+
+            println("TIME: Trust Downloaded in $elapsedServerDownload from ${registryURL.resolvableURI} with ${methods?.size} keys")
 
             val elapsed = measureTimeMillis {
-                didDocumentResolution?.didDocument?.verificationMethods?.forEach {
+                methods?.forEach {
                     try {
                         val key = buildPublicKey(it)
                         if (key != null)
