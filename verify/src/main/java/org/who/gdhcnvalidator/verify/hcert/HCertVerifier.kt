@@ -180,7 +180,7 @@ class HCertVerifier (private val registry: TrustRegistry) {
             QRDecoder.Status.INVALID_SIGNING_FORMAT, null, null, qr, null)
 
         val contentsCBOR = getContent(signedMessage)
-        val unpacked = contentsCBOR.ToJSONString()
+        val unpacked = unpack(signedMessage, contentsCBOR)
 
         val contents = toFhir(contentsCBOR) ?: return QRDecoder.VerificationResult(QRDecoder.Status.NOT_SUPPORTED, null, null, qr, unpacked)
 
@@ -202,5 +202,15 @@ class HCertVerifier (private val registry: TrustRegistry) {
                 else
                     QRDecoder.VerificationResult(QRDecoder.Status.INVALID_SIGNATURE, contents, issuer, qr, unpacked)
         }
+    }
+
+    private fun unpack(signedMessage: Sign1Message, contents: CBORObject): String? {
+        return """
+            {
+                "protectedAttributes": ${signedMessage.protectedAttributes.ToJSONString()},
+                "unprotectedAttributes": ${signedMessage.unprotectedAttributes.ToJSONString()},
+                "contents": ${contents.ToJSONString()}
+            }
+        """;
     }
 }
