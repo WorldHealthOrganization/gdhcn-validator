@@ -1,0 +1,157 @@
+map "http://smart.who.int/icvp/StructureMap/DVCLMToIPS" = "DVCLMToIPS"
+uses "http://smart.who.int/icvp/StructureDefinition/ModelDVC" alias DVCLogicalModel as source
+uses "http://hl7.org/fhir/StructureDefinition/Bundle" alias IPS as target
+
+
+// create Bundle
+group DVCLMToIPS(source lm : DVCLogicalModel, target ips : IPS) {
+  lm -> ips.type = 'document' "setIPSType";
+  lm -> uuid() as bid, ips.identifier as id, id.value = bid, id.system = "urn:oid:2.16.724.4.8.10.200.10" "setId";
+  lm -> uuid() as cid, uuid() as pid, uuid() as mid, uuid() as aid, uuid() as proid, uuid() as immid then {
+    lm -> ips.entry as entry,  entry.resource = create('Composition') as composition,  entry.fullUrl = append('urn:uuid:', cid) then {
+        lm then LmToComposition(lm, ips, composition, cid,  pid, mid, aid, proid, immid ) "set LmToComposition";
+        lm -> ips.entry as entry, entry.fullUrl = append('urn:uuid:', pid), create('Patient') as patient then {
+            lm then DemographicsToPatient(lm, patient, pid) "createPatient";
+            lm -> entry.resource = patient "setPatientEntry";
+        } "mapPatientResource";
+        lm.issuer as issuer then {
+          issuer.reference as id -> ips.entry as entry, entry.fullUrl = append('urn:uuid:', id), create('Organization') as organization then {
+             lm -> organization then createAuthor(issuer, organization) "createOrganization";
+            lm -> entry.resource = organization "setOrganizationEntry";
+        } "mapOrganizationResource";
+        } "ss";
+    } "mapCompositionResource";
+  } "setEntries" ;
+}
+
+// create Composition
+group LmToComposition(source lm : DVCLogicalModel, target ips : Bundle, target composition : Composition, source cid, source pid, source mid, source aid, source proid, source immid) {
+  cid -> composition.id = cid "setCid";
+  lm -> composition.status = "final" "setStatus";
+  lm -> composition.title = "International Patient Summary" "setTitle";
+  lm -> create('Coding') as coding, coding.code = "60591-5", coding.system = "http://loinc.org", create('CodeableConcept') as code, code.coding = coding,  composition.type = code "setType";
+  lm -> composition.subject as subject then {
+    lm -> subject.reference= append('urn:uuid:',pid) "setSubject";
+  } "setSubject";
+  lm.issuer as issuer then {
+    issuer.reference as id -> composition.author as author then {
+      id -> author.reference = append('urn:uuid:', id) "setAuthor";
+    }   "setauthr";
+  } "setid";
+  lm -> composition.section as medication then createSectionMedications(lm, medication, mid) "createMedication";
+  lm -> composition.section as allergies then createSectionAllergies(lm, allergies, aid) "createAllergies";
+  lm -> composition.section as problems then createSectionProblems(lm, problems, proid) "createProblems";
+  lm then createSectionImmunizations(lm, ips, composition, immid, pid) "createImmunizations";
+}
+
+// create Patient
+group DemographicsToPatient(source lm:DVCLogicalModel , target patient: Patient, source pid) {
+ pid -> patient.id = pid "setPatientId";
+ lm.name as sourceName -> patient.name as targetName then nameToHumanName(sourceName, targetName) "Setname";
+ lm.dob as dob -> patient.birthDate = dob "setDateofBirth";
+ lm.sex as sex then ExtractGender(sex, patient) "Patient Gender";
+ //lm.sex as sex -> patient.gender = sex "setSex";
+ lm.nid as id -> patient.identifier as identifier, identifier.value = id "setNationalIdentifier";
+ lm.guardian as guardian -> patient.contact as parentContact, parentContact.name as parentName then nameToHumanName(guardian, parentName) "setGuardianName";
+}
+
+// deals with short and case sensitive codes
+group ExtractGender(source sex, target patient: Patient) {
+  sex where(sex = "M") -> patient.gender = "male" "set male";
+  sex where(sex = "F") -> patient.gender = "female" "set female";
+  sex where(sex = "m") -> patient.gender = "male" "set male";
+  sex where(sex = "f") -> patient.gender = "female" "set female";
+  sex where(sex = "Male") -> patient.gender = "male" "set male";
+  sex where(sex = "Female") -> patient.gender = "female" "set female";
+  sex where(sex = "male") -> patient.gender = "male" "set male";
+  sex where(sex = "female") -> patient.gender = "female" "set female";
+}
+
+// create author
+group createAuthor(source issuer, target org: Organization) {
+  issuer.reference as id -> org.id = id "setID";
+}
+
+// create sectionMedications
+group createSectionMedications(source lm:DVCLogicalModel, target med : BackboneElement, source mid ) {
+mid -> med.id = mid "setmedicationid";
+lm -> med.title = "Medication Summary Section" "setMedicationTitle";
+lm -> med.text as text then generateNarrativeText(med,text) "setText";
+lm -> create('Coding') as coding, coding.code = "10160-0", coding.system = "http://loinc.org", create('CodeableConcept') as code, code.coding = coding,  med.code = code "setCode";
+lm -> create('Coding') as coding, coding.code = "unavailable", coding.system = "http://hl7.org/fhir/ValueSet/list-empty-reason", create('CodeableConcept') as code, code.coding = coding,  med.emptyReason = code "setCode";
+}
+
+// create sectionAllergies
+group createSectionAllergies(source lm:DVCLogicalModel, target all : BackboneElement, source aid ) {
+aid -> all.id = aid "setAllergyId";
+lm -> all.title = "Allergies Section" "setAllergyTitle";
+lm -> all.text as text then generateNarrativeText(all,text) "setText";
+lm -> create('Coding') as coding, coding.code = "48765-2", coding.system = "http://loinc.org", create('CodeableConcept') as code, code.coding = coding,  all.code = code "setCode";
+lm -> create('Coding') as coding, coding.code = "unavailable", coding.system = "http://hl7.org/fhir/ValueSet/list-empty-reason", create('CodeableConcept') as code, code.coding = coding,  all.emptyReason = code "setCode";
+}
+
+// create sectionProblems
+group createSectionProblems(source lm:DVCLogicalModel, target prb : BackboneElement, source proid ) {
+proid -> prb.id = proid "setProblemsId";
+lm -> prb.title = "Problems Section" "setProblemTitle";
+lm -> prb.text as text then generateNarrativeText(prb,text) "setText";
+lm -> create('Coding') as coding, coding.code = "11450-4", coding.system = "http://loinc.org", create('CodeableConcept') as code, code.coding = coding,  prb.code = code "setCode";
+lm -> create('Coding') as coding, coding.code = "unavailable", coding.system = "http://hl7.org/fhir/ValueSet/list-empty-reason", create('CodeableConcept') as code, code.coding = coding,  prb.emptyReason = code "setCode";
+}
+
+// create sectionImmunizations
+group createSectionImmunizations(source lm:DVCLogicalModel, target bundle: Bundle, target composition: Composition, source immid, source pid ) {
+  lm -> composition.section as imm then {
+    immid -> imm.id = immid "setImmunizationsId";
+    lm -> imm.title = "Immunizations Section" "setImmunizationTitle";
+    lm -> imm.text as text then generateNarrativeText(imm,text) "setText";
+    lm -> create('Coding') as coding, coding.code = "11369-6", coding.system = "http://loinc.org", create('CodeableConcept') as code, code.coding = coding,  imm.code = code "setCode";
+    lm.vaccineDetails as vax -> uuid() as id, bundle.entry as entry, entry.fullUrl = append('urn:uuid:', id), imm.entry as sectionEntry, sectionEntry.reference = append('urn:uuid:', id), entry.resource = create('Immunization') as immunization , immunization.id = id then createImmunizationResource(vax, immunization, pid ) "setImmz";
+  } "set";
+}
+
+group createImmunizationResource (source vax : vaccineDetails, target immunization : Immunization, source pid) {
+    vax -> immunization.status = "completed" "setStatus";
+    vax.vaccineClassification as vaccine -> immunization.vaccineCode = vaccine "setvaccinecode";
+    vax.date as date -> immunization.occurrence = append(date , 'T00:00:00.000Z') "setDate";
+    vax.batchNo as batchNo -> immunization.lotNumber = batchNo "setBatchNo";
+    vax -> immunization.protocolApplied as protocol then {
+      vax.doseNumber as doseNo then {
+        doseNo.coding as coding then {
+          coding.code as code  -> protocol.doseNumber = code "setDoseNo";
+        } "setDoseNo";
+      } "setDoseNo";
+      vax.disease as disease -> create('CodeableConcept') as code, code.coding = disease, protocol.targetDisease = code "setTargetDisease";
+    } "setProtocolApplied";
+    vax -> immunization.patient as subject, subject.reference = append('urn:uuid:',pid) "setSubject";
+    vax.manufacturerId as maId -> create('Reference') as maRef, maRef.identifier = maId, immunization.manufacturer = maRef "set Manufacturer";
+}
+
+//helper function
+group generateNarrativeText(source src: Section, target text: string) {
+ src -> text.status = "empty" "setstatus";
+ src -> text.div = '<div xmlns="http://www.w3.org/1999/xhtml">Narrative not available</div>' "setdiv";
+}
+
+group nameToHumanName (source sourceName, target targetName: HumanName) {
+  sourceName as patientName -> targetName.text = patientName "Patient Name";
+}
+
+group humanNameToHumanName (source sourceName, target targetName: HumanName) {
+  sourceName.use as use -> targetName.use = use "CopyUse";
+  sourceName.text as text -> targetName.text = text "CopyText";
+  sourceName.family as family -> targetName.family = family "CopyFamily";
+  sourceName.given as given -> targetName.given = given "CopyGiven";
+  sourceName.prefix as prefix -> targetName.prefix = prefix "CopyPrefix";
+  sourceName.suffix as suffix -> targetName.suffix = suffix "CopySuffix";
+
+  // Copy the period using the previously defined group function
+  sourceName.period as sourcePeriod -> targetName.period as targetPeriod then {
+    sourcePeriod then periodToPeriod(sourcePeriod, targetPeriod) "CopyPeriod";
+  } "copyPeriod";
+}
+
+group periodToPeriod (source sourcePeriod , target targetPeriod: Period) {
+  sourcePeriod.start as start -> targetPeriod.start = start "set period start";
+  sourcePeriod.end as end -> targetPeriod.end = end "set period end";
+}

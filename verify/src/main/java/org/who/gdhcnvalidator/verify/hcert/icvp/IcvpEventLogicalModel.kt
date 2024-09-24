@@ -6,8 +6,8 @@ import java.sql.Ref
 open class IcvpEventLogicalModel(
     name: StringType?,
     dob: DateType?,
-    sex: Coding?,
-    nationality: Coding?,
+    sex: CodeType?,
+    nationality: CodeType?,
 
     nid: StringType?,
     guardian: StringType?,

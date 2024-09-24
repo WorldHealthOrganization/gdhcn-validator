@@ -2,8 +2,10 @@ package org.who.gdhcnvalidator.verify.hcert.icvp
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.hl7.fhir.r4.model.Base
+import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
@@ -14,8 +16,8 @@ import org.who.gdhcnvalidator.verify.hcert.ddcc.ReferenceDeserializer
 open class DvcLogicalModel(
     var name: StringType? = null,
     var dob: DateType? = null,
-    var sex: Coding? = null,
-    var nationality: Coding? = null,
+    var sex: CodeType? = null,
+    var nationality: CodeType? = null,
 
     var nid: StringType? = null,
     var guardian: StringType? = null,
@@ -47,8 +49,8 @@ open class DvcLogicalModel(
         when (hash) {
             "name".hashCode() -> this.name = (value as? StringType)
             "dob".hashCode() -> dob = (value as? DateType)
-            "sex".hashCode() -> sex = (value as? Coding)
-            "nationality".hashCode() -> nationality = (value as? Coding)
+            "sex".hashCode() -> sex = (value as? CodeType)
+            "nationality".hashCode() -> nationality = (value as? CodeType)
             "nid".hashCode() -> nid = (value as? StringType)
             "guardian".hashCode() -> guardian = (value as? StringType)
             "vaccineDetails".hashCode() -> vaccineDetails = (value as? DvcVaccineDetails)
@@ -62,8 +64,8 @@ open class DvcLogicalModel(
         when (name) {
             "name" -> this.name = (value as? StringType)
             "dob" -> dob = (value as? DateType)
-            "sex" -> sex = (value as? Coding)
-            "nationality" -> nationality = (value as? Coding)
+            "sex" -> sex = (value as? CodeType)
+            "nationality" -> nationality = (value as? CodeType)
             "nid" -> nid = (value as? StringType)
             "guardian" -> guardian = (value as? StringType)
             "vaccineDetails" -> vaccineDetails = (value as? DvcVaccineDetails)

@@ -5,8 +5,8 @@ import org.hl7.fhir.r4.model.*
 open class IcvpLogicalModel(
     name: StringType?,
     dob: DateType?,
-    sex: Coding?,
-    nationality: Coding?,
+    sex: CodeType?,
+    nationality: CodeType?,
 
     nid: StringType?,
     guardian: StringType?,

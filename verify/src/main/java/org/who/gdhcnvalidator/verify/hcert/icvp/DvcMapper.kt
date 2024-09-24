@@ -45,6 +45,8 @@ class DvcMapper: BaseMapper() {
         val map1 = ivcpIG.getTransform("http://smart.who.int/icvp/StructureMap/DVCClaimtoDVCLM")
         val map2 = ivcpIG.getTransform("http://smart.who.int/icvp/StructureMap/DVCLMToIPS")
 
+        val test = myUtils.parse(loadFile("DVCLMToIPS.map")!!.bufferedReader().readText(), "DVCLMToIPS2")
+
         val bundle = MyBundle().apply {
             // TODO: for some reason it doesn't support this full map
             //myUtils.transform(ivcpIG, dvm, map, this)
@@ -52,6 +54,7 @@ class DvcMapper: BaseMapper() {
                 myUtils.transform(ivcpIG, dvm, map1, this)
             }
             myUtils.transform(ivcpIG, model, map2, this)
+            //myUtils.transform(ivcpIG, model, test, this)
         }
 
         val (bundle2, elapsedSerialization) = measureTimedValue {

@@ -728,10 +728,19 @@ class DDCCFormatter {
             testResult = formatTestResult(testResult?.valueCodeableConcept),
 
             // Immunization
-            dose = formatDose(
-                immunization?.protocolApplied?.firstOrNull()?.doseNumberPositiveIntType,
-                immunization?.protocolApplied?.firstOrNull()?.seriesDosesPositiveIntType
-            ),
+            dose = if (immunization?.protocolApplied?.firstOrNull()?.hasDoseNumber() == true) {
+                if (immunization.protocolApplied?.firstOrNull()?.hasDoseNumberStringType() == true) {
+                    immunization.protocolApplied?.firstOrNull()?.doseNumberStringType?.toString() ?: ""
+                } else {
+                    formatDose(
+                        immunization.protocolApplied?.firstOrNull()?.doseNumberPositiveIntType,
+                        immunization.protocolApplied?.firstOrNull()?.seriesDosesPositiveIntType
+                    )
+                }
+            } else {
+                null
+            },
+
             doseDate = formatDate(immunization?.occurrenceDateTimeType),
             vaccineValid = formatVaccineValidTo(immunization?.getExtensionsByUrl(EXT_VACCINE_VALID)),
             vaccineAgainst = formatVaccineAgainst(immunization?.protocolApplied?.firstOrNull()?.targetDisease),

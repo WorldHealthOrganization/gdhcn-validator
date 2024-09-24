@@ -98,7 +98,7 @@ object IdentifierDeserializer: JsonDeserializer<Base>() {
                 id = token.toString()
             }
         } else {
-            return null
+            return jacksonObjectMapper().readValue<Identifier>(token.toString())
         }
     }
 }

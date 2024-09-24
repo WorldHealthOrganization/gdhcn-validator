@@ -141,7 +141,27 @@
         "patient": {
           "reference": "urn:uuid:969e8fbe-52b8-425f-8c4c-bbd6f7aa886f"
         },
-        "lotNumber": "123123123"
+        "manufacturer": {
+          "identifier": {
+            "value": "25"
+          }
+        },
+        "lotNumber": "123123123",
+        "protocolApplied": [
+          {
+            "targetDisease": [
+              {
+                "coding": [
+                  {
+                    "system": "http://id.who.int/icd/release/11/mms",
+                    "code": "1D47"
+                  }
+                ]
+              }
+            ],
+            "doseNumberString": "Primary"
+          }
+        ]
       }
     },
     {
@@ -158,6 +178,7 @@
             "text": "Aulo Agerio"
           }
         ],
+        "gender": "male",
         "birthDate": "1905-08-23",
         "contact": [
           {

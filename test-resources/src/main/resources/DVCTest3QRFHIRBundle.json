@@ -141,7 +141,27 @@
         "patient": {
           "reference": "urn:uuid:969e8fbe-52b8-425f-8c4c-bbd6f7aa886f"
         },
-        "lotNumber": "d23456"
+        "manufacturer": {
+          "identifier": {
+            "value": "2.16.858.0.0.1.6"
+          }
+        },
+        "lotNumber": "d23456",
+        "protocolApplied": [
+          {
+            "targetDisease": [
+              {
+                "coding": [
+                  {
+                    "system": "http://id.who.int/icd/release/11/mms",
+                    "code": "RA01"
+                  }
+                ]
+              }
+            ],
+            "doseNumberString": "secondDose"
+          }
+        ]
       }
     },
     {
@@ -158,6 +178,7 @@
             "text": "Albani Olivieri"
           }
         ],
+        "gender": "female",
         "birthDate": "1999-05-05"
       }
     }

@@ -114,7 +114,7 @@ class QRViewTest: BaseTrustRegistryTest() {
 
         assertEquals(QRDecoder.Status.ISSUER_NOT_TRUSTED, verified.status)
 
-        assertEquals(false, results.getParameterBool("CompletedImmunization"))
+        assertEquals(true, results.getParameterBool("CompletedImmunization"))
         assertEquals(Collections.EMPTY_LIST, results.getParameters("GetFinalDose"))
 
         println(jsonParser.encodeResourceToString(verified.contents))
@@ -122,23 +122,23 @@ class QRViewTest: BaseTrustRegistryTest() {
         val card2 = DDCCFormatter().run(verified.composition()!!)
 
         // Credential
-        assertEquals("Vaccination", card2.cardTitle!!.split(" - ")[1])
+        assertEquals("Yellow fever Vaccination", card2.cardTitle!!.split(" - ")[1])
         assertEquals(null, card2.validUntil)
 
         // Patient
         assertEquals("Aulo Agerio", card2.personName)
-        assertEquals("Aug 23, 1905", card2.personDetails)
+        assertEquals("Aug 23, 1905 - Male", card2.personDetails)
         assertEquals("ID: 16337361-9", card2.identifier)
 
         // Immunization
         assertEquals("Yellow fever vaccine", card2.vaccineType)
-        assertEquals("Lot #123123123", card2.vaccineInfo)
+        assertEquals("25 (#123123123)", card2.vaccineInfo)
 
         // TODO: Fix these fields in the StructureMap
-        //assertEquals("Dose: 1 of 2", card2.dose)
+        assertEquals("Primary", card2.dose)
         //assertEquals("Jul 8, 2021", card2.doseDate)
         //assertEquals("Jul 22, 2021", card2.vaccineValid)
-        //assertEquals("COVID-19", card2.vaccineAgainst)
+        assertEquals("Yellow fever", card2.vaccineAgainst)
         assertEquals(null, card2.vaccineInfo2)
         assertEquals(null, card2.location)
         assertEquals(null, card2.hcid)
@@ -195,6 +195,7 @@ class QRViewTest: BaseTrustRegistryTest() {
         assertEquals(null, card2.nextDose)
     }
 
+    @Ignore("Not supported anymore")
     @Test
     fun viewSingaporePCR() = runBlocking {
         val qr2 = open("WHOSingaporePCRContents.txt")

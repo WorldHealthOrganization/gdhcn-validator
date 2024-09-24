@@ -39,7 +39,7 @@ open class DvcVaccineDetails (
     }
 
     override fun setProperty(hash: Int, name: String?, value: Base?): Base? {
-        println("DvcLogicalModel setProperty $hash $name $value")
+        println("DvcVaccineDetails setProperty $hash $name $value")
         when (hash) {
             "doseNumber".hashCode() -> doseNumber = (value as? CodeableConcept)
             "disease".hashCode() -> disease = (value as? Coding)
@@ -58,6 +58,7 @@ open class DvcVaccineDetails (
     }
 
     override fun setProperty(name: String?, value: Base?): Base? {
+        println("DvcVaccineDetails setProperty $name $value")
         when (name) {
             "doseNumber" -> doseNumber = (value as? CodeableConcept)
             "disease" -> disease = (value as? Coding)
