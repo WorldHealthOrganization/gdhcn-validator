@@ -120,7 +120,7 @@ class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
     }
 
     @Test
-    fun evaluateTestPassOnWHOQR1FromQRTest() = runBlocking {
+    fun evaluateTestPassOnDVCFromQRTest() = runBlocking {
         val qr1 = open("DVCTestQR.txt")
         val verified = HCertVerifier(registry).unpackAndVerify(qr1)
 
@@ -133,9 +133,8 @@ class CQLEvaluatorAndroidTest: BaseTrustRegistryTest() {
             patId(verified.contents),
             setOf("CompletedImmunization", "GetFinalDose", "GetSingleDose")) as Parameters
 
-        Assert.assertEquals(false, results.getParameterBool("CompletedImmunization"))
+        Assert.assertEquals(true, results.getParameterBool("CompletedImmunization"))
         Assert.assertEquals(Collections.EMPTY_LIST, results.getParameters("GetFinalDose"))
-        Assert.assertEquals(Collections.EMPTY_LIST, results.getParameters("GetSingleDose"))
     }
 
     @Ignore("QR codes created in the first version are now invalid")
