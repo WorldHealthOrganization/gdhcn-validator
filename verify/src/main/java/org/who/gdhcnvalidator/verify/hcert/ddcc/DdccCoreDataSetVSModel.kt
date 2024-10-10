@@ -26,8 +26,7 @@ class DdccCoreDataSetVS (
 
     certificate: DdccCertificate?,
 
-    // test
-    val vaccination: Vaccination,
+    val vaccination: Vaccination?,
 ): DdccCoreDataSet(meta, name, birthDate, sex, identifier, certificate)
 
 class DdccVaccination (
