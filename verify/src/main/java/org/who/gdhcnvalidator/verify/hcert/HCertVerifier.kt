@@ -19,6 +19,7 @@ import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccMapper
 import org.who.gdhcnvalidator.verify.hcert.ddcc.ReferenceDeserializer
 import org.who.gdhcnvalidator.verify.hcert.healthlink.HealthLinkMapper
 import org.who.gdhcnvalidator.verify.hcert.icvp.DvcMapper
+import java.net.URLDecoder
 import java.security.PublicKey
 import java.util.*
 import java.util.zip.InflaterInputStream
@@ -185,6 +186,7 @@ class HCertVerifier (private val registry: TrustRegistry) {
         val contents = toFhir(contentsCBOR) ?: return QRDecoder.VerificationResult(QRDecoder.Status.NOT_SUPPORTED, null, null, qr, unpacked)
 
         val kid = getKID(signedMessage) ?: return QRDecoder.VerificationResult(QRDecoder.Status.KID_NOT_INCLUDED, contents, null, qr, unpacked)
+        val decodedKid = URLDecoder.decode(kid, "UTF-8")
         val countryCode = getCountry(contentsCBOR)
 
         // try new key ids first
