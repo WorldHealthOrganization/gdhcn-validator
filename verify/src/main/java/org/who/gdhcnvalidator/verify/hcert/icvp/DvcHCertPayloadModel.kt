@@ -13,6 +13,7 @@ class HCertDVC(
     val s: CodeType?,           // Sex
     val ntl: CodeType?,         // Nationality
     val nid: StringType?,     // National Identification Document
+    val ndt: CodeType?,       // National ID Document Type
     val gn: StringType?,      // Parent or Guardian Name
 
     val v: DvcHCertVaccination?, // Vaccination Group (Can only have one)

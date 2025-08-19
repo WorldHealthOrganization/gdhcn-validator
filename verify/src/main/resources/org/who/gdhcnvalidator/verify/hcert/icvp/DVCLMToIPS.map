@@ -51,7 +51,10 @@ group DemographicsToPatient(source lm:DVCLogicalModel , target patient: Patient,
  lm.dob as dob -> patient.birthDate = dob "setDateofBirth";
  lm.sex as sex then ExtractGender(sex, patient) "Patient Gender";
  //lm.sex as sex -> patient.gender = sex "setSex";
- lm.nid as id -> patient.identifier as identifier, identifier.value = id "setNationalIdentifier";
+ lm.nid as id -> patient.identifier as identifier then {
+   id -> identifier.value = id "setNationalIdentifierValue";
+   lm.ndt as ndt -> identifier.type as type, type.coding as coding, coding.code = ndt "setNationalIdentifierType";
+ } "setNationalIdentifier";
  lm.guardian as guardian -> patient.contact as parentContact, parentContact.name as parentName then nameToHumanName(guardian, parentName) "setGuardianName";
 }
 
