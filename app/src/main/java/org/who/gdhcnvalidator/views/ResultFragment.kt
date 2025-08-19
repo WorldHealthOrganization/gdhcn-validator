@@ -464,16 +464,87 @@ class ResultFragment : Fragment() {
     }
     
     /**
-     * Shows FHIR IPS content in a dialog
+     * Shows FHIR IPS content in a dialog with structured information
      */
     private fun showFhirIpsDialog(file: VhlVerifier.VhlFileInfo) {
+        val ipsBundle = file.content as? org.hl7.fhir.r4.model.Bundle
+        
+        val message = if (ipsBundle != null) {
+            buildIpsDisplayText(ipsBundle)
+        } else {
+            "FHIR IPS Document\n\nContent is not available for display."
+        }
+        
         AlertDialog.Builder(requireContext())
             .setTitle(file.title)
-            .setMessage("FHIR IPS Document\n\nThis contains structured health information that would be processed and displayed in a production implementation.")
+            .setMessage(message)
             .setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
             }
             .show()
+    }
+    
+    /**
+     * Builds a human-readable text representation of IPS Bundle content
+     */
+    private fun buildIpsDisplayText(ipsBundle: org.hl7.fhir.r4.model.Bundle): String {
+        val builder = StringBuilder()
+        builder.append("FHIR International Patient Summary\n\n")
+        
+        // Extract patient information
+        val patient = ipsBundle.entry?.find { 
+            it.resource is org.hl7.fhir.r4.model.Patient 
+        }?.resource as? org.hl7.fhir.r4.model.Patient
+        
+        if (patient != null) {
+            builder.append("Patient Information:\n")
+            patient.name?.firstOrNull()?.let { name ->
+                val fullName = listOfNotNull(
+                    name.given?.joinToString(" "),
+                    name.family
+                ).joinToString(" ")
+                if (fullName.isNotEmpty()) {
+                    builder.append("• Name: $fullName\n")
+                }
+            }
+            
+            patient.birthDate?.let { birthDate ->
+                builder.append("• Birth Date: ${birthDate}\n")
+            }
+            
+            patient.gender?.let { gender ->
+                builder.append("• Gender: ${gender.display ?: gender.name}\n")
+            }
+            
+            builder.append("\n")
+        }
+        
+        // Count other resources
+        val resourceCounts = ipsBundle.entry?.groupBy { 
+            it.resource?.fhirType() 
+        }?.mapValues { it.value.size }
+        
+        if (resourceCounts != null && resourceCounts.isNotEmpty()) {
+            builder.append("Document Contents:\n")
+            resourceCounts.forEach { (type, count) ->
+                when (type) {
+                    "Composition" -> builder.append("• Document Structure: $count entry\n")
+                    "Patient" -> {} // Already handled above
+                    "Medication", "MedicationStatement" -> builder.append("• Medications: $count entries\n")
+                    "AllergyIntolerance" -> builder.append("• Allergies: $count entries\n")
+                    "Condition" -> builder.append("• Conditions: $count entries\n")
+                    "Immunization" -> builder.append("• Immunizations: $count entries\n")
+                    "Procedure" -> builder.append("• Procedures: $count entries\n")
+                    "DiagnosticReport" -> builder.append("• Lab Results: $count entries\n")
+                    "Observation" -> builder.append("• Observations: $count entries\n")
+                    else -> builder.append("• $type: $count entries\n")
+                }
+            }
+        }
+        
+        builder.append("\nThis is a structured health summary document following international standards.")
+        
+        return builder.toString()
     }
     
     /**
