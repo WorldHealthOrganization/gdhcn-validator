@@ -2,6 +2,19 @@
 
 This document describes the user experience and technical workflows in the GDHCN Validator app.
 
+## Table of Contents
+
+- [User Journey Overview](#user-journey-overview)
+- [Detailed User Workflow](#detailed-user-workflow)
+  - [1. App Launch and Home Screen](#1-app-launch-and-home-screen)
+  - [2. QR Code Scanning](#2-qr-code-scanning)
+  - [3. QR Code Processing and Verification](#3-qr-code-processing-and-verification)
+  - [4. Clinical Decision Support](#4-clinical-decision-support)
+  - [5. Results Display](#5-results-display)
+- [Error Handling and Edge Cases](#error-handling-and-edge-cases)
+- [Technical Architecture Summary](#technical-architecture-summary)
+- [Data Flow Diagram](#data-flow-diagram)
+
 ## User Journey Overview
 
 The GDHCN Validator app provides a simple, secure way for users to verify digital health certificates. The typical user workflow involves three main steps:

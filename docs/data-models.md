@@ -2,6 +2,22 @@
 
 This document describes the data models used in the GDHCN Validator app for processing various types of digital health certificates.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Base Classes](#base-classes)
+- [Supported Data Models](#supported-data-models)
+  - [1. DDCC (Digital Documentation of COVID-19 Certificates)](#1-ddcc-digital-documentation-of-covid-19-certificates)
+  - [2. EU DCC (Digital COVID Certificate)](#2-eu-dcc-digital-covid-certificate)
+  - [3. DIVOC (Digital Infrastructure for Verifiable Open Credentialing)](#3-divoc-digital-infrastructure-for-verifiable-open-credentialing)
+  - [4. SHC (Smart Health Cards)](#4-shc-smart-health-cards)
+  - [5. ICAO (International Civil Aviation Organization)](#5-icao-international-civil-aviation-organization)
+  - [6. ICVP/DVC (International Certificate of Vaccination or Prophylaxis)](#6-icvpdvc-international-certificate-of-vaccination-or-prophylaxis)
+  - [7. Smart Health Links](#7-smart-health-links)
+- [Data Flow and Transformation](#data-flow-and-transformation)
+- [Common Serialization Features](#common-serialization-features)
+- [References](#references)
+
 ## Overview
 
 The GDHCN Validator supports multiple digital health certificate standards, each with its own data model. These models are parsed from QR codes and transformed into FHIR (Fast Healthcare Interoperability Resources) bundles for standardized processing.
