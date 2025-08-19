@@ -26,21 +26,19 @@ class VhlQRDecoderTest : BaseTrustRegistryTest() {
     }
     
     @Test
-    fun testShlUriDetection() {
+    fun testInvalidShlUri() {
         val decoder = QRDecoder(registry)
         
-        // Create a sample SHL URI (no PIN required)
+        // SHL URIs should not be processed as VHL
         val testData = """{"url":"https://example.com/manifest"}"""
         val encodedData = Base64.getUrlEncoder().encodeToString(testData.toByteArray())
         val shlUri = "shlink:/$encodedData"
         
         val result = decoder.decode(shlUri)
         
-        // Since we can't actually fetch the manifest, expect fetch error
-        assertEquals("Should detect SHL but fail to fetch", QRDecoder.Status.VHL_FETCH_ERROR, result.status)
-        assertNotNull("Should have VHL info", result.vhlInfo)
-        assertFalse("Should not require PIN", result.vhlInfo?.requiresPin == true)
-        assertEquals("Should preserve original QR", shlUri, result.qr)
+        // SHL should not be supported
+        assertEquals("Should not support SHL", QRDecoder.Status.NOT_SUPPORTED, result.status)
+        assertNull("Should not have VHL info", result.vhlInfo)
     }
     
     @Test

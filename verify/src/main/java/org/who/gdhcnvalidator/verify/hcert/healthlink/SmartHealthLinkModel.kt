@@ -4,8 +4,8 @@ import org.hl7.fhir.r4.model.StringType
 import org.who.gdhcnvalidator.verify.BaseModel
 
 /**
- * Model for Smart Health Links and Verifiable Health Links (VHL)
- * Supports both SHL (shlink:/) and VHL (vhlink:/) URI formats
+ * Model for Verifiable Health Links (VHL)
+ * Supports only VHL (vhlink:/) URI format
  */
 open class SmartHealthLinkModel (
     val u: StringType?
@@ -16,7 +16,7 @@ open class SmartHealthLinkModel (
      */
     fun isVHL(): Boolean {
         val uri = u?.value ?: return false
-        return uri.startsWith("vhlink:/") || uri.startsWith("shlink:/")
+        return uri.startsWith("vhlink:/")
     }
     
     /**

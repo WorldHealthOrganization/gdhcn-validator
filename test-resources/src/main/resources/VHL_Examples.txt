@@ -10,11 +10,6 @@ vhlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL21hbmlmZXN0In0=
 
 This decodes to: {"url":"https://example.com/manifest"}
 
-## SHL Example
-shlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL3NobC1tYW5pZmVzdCJ9
-
-This decodes to: {"url":"https://example.com/shl-manifest"}
-
 ## VHL with Additional Parameters
 vhlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL21hbmlmZXN0IiwiZmxhZyI6IlAiLCJrZXkiOiJhYmNkZWYxMjM0NTYiLCJsYWJlbCI6IlZhY2NpbmF0aW9uIFJlY29yZCIsImV4cCI6MTY5ODc2ODAwMH0=
 

@@ -52,8 +52,8 @@ class QRDecoder(private val registry: TrustRegistry) {
     )
 
     fun decode(qrPayload : String): VerificationResult {
-        // Check for VHL/SHL URIs first
-        if (qrPayload.startsWith("vhlink:/") || qrPayload.startsWith("shlink:/")) {
+        // Check for VHL URIs first
+        if (qrPayload.startsWith("vhlink:/")) {
             return processVhlUri(qrPayload)
         }
         

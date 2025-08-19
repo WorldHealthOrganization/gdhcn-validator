@@ -37,13 +37,12 @@ class VhlVerifier {
         .build()
     
     /**
-     * Decodes a VHL URI (vhlink:/ or shlink:/) to extract the manifest URL
+     * Decodes a VHL URI (vhlink:/) to extract the manifest URL
      */
     fun decodeVhlUri(uri: String): VhlDecodedLink? {
         return try {
             val payload = when {
                 uri.startsWith("vhlink:/") -> uri.substring(8)
-                uri.startsWith("shlink:/") -> uri.substring(8)
                 else -> return null
             }
             
@@ -98,11 +97,27 @@ class VhlVerifier {
     
     /**
      * Extracts file information from the VHL manifest
+     * Supports both current VHL manifest format and deprecated SHL manifest format
      * Returns list of file metadata for display to user
      */
     fun extractFileList(manifest: Bundle): List<VhlFileInfo> {
         val files = mutableListOf<VhlFileInfo>()
         
+        // Check if this is a current VHL manifest (FHIR SearchSet Bundle with List resources)
+        if (manifest.type == Bundle.BundleType.SEARCHSET) {
+            extractFromCurrentVhlManifest(manifest, files)
+        } else {
+            // Try deprecated SHL manifest format (files array in Bundle entries)
+            extractFromDeprecatedShlManifest(manifest, files)
+        }
+        
+        return files
+    }
+    
+    /**
+     * Extract files from current VHL manifest format (FHIR SearchSet Bundle with List resources)
+     */
+    private fun extractFromCurrentVhlManifest(manifest: Bundle, files: MutableList<VhlFileInfo>) {
         // Process List resources and their included items
         manifest.entry?.forEach { entry ->
             when (val resource = entry.resource) {
@@ -123,8 +138,20 @@ class VhlVerifier {
                 }
             }
         }
-        
-        return files
+    }
+    
+    /**
+     * Extract files from deprecated SHL manifest format
+     * Based on https://build.fhir.org/ig/HL7/smart-health-cards-and-links/StructureDefinition-ShlManifest.html
+     */
+    private fun extractFromDeprecatedShlManifest(manifest: Bundle, files: MutableList<VhlFileInfo>) {
+        // In deprecated format, files are directly in Bundle entries
+        manifest.entry?.forEach { entry ->
+            val resource = entry.resource
+            if (resource != null) {
+                files.add(extractFileInfo(resource))
+            }
+        }
     }
     
     private fun extractFileInfo(resource: org.hl7.fhir.r4.model.Resource): VhlFileInfo {
