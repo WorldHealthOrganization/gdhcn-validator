@@ -30,13 +30,12 @@ class VhlExampleQRTest : BaseTrustRegistryTest() {
         assertFalse("Should not require PIN", resultWithoutPin.vhlInfo?.requiresPin == true)
         assertEquals("Should extract URL", "https://example.com/manifest", resultWithoutPin.vhlInfo?.decodedLink?.url)
         
-        // Test SHL format
+        // Test SHL format - should not be supported per requirements
         val shlExample = "shlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL3NobC1tYW5pZmVzdCJ9"
         val shlResult = decoder.decode(shlExample)
         
-        assertEquals("Should fail to fetch SHL manifest", QRDecoder.Status.VHL_FETCH_ERROR, shlResult.status)
-        assertNotNull("Should have VHL info", shlResult.vhlInfo)
-        assertEquals("Should extract SHL URL", "https://example.com/shl-manifest", shlResult.vhlInfo?.decodedLink?.url)
+        assertEquals("Should not support SHL", QRDecoder.Status.NOT_SUPPORTED, shlResult.status)
+        assertNull("Should not have VHL info", shlResult.vhlInfo)
         
         // Test VHL with additional parameters
         val vhlFull = "vhlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL21hbmlmZXN0IiwiZmxhZyI6IlAiLCJrZXkiOiJhYmNkZWYxMjM0NTYiLCJsYWJlbCI6IlZhY2NpbmF0aW9uIFJlY29yZCIsImV4cCI6MTY5ODc2ODAwMH0="

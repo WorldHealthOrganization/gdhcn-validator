@@ -52,9 +52,14 @@ class QRDecoder(private val registry: TrustRegistry) {
     )
 
     fun decode(qrPayload : String): VerificationResult {
-        // Check for VHL URIs first
+        // Check for VHL URIs first - only vhlink:/ is supported
         if (qrPayload.startsWith("vhlink:/")) {
             return processVhlUri(qrPayload)
+        }
+        
+        // Explicitly reject SHL URIs as not supported per requirements
+        if (qrPayload.startsWith("shlink:/")) {
+            return VerificationResult(Status.NOT_SUPPORTED, null, null, qrPayload, null)
         }
         
         if (qrPayload.uppercase().startsWith("HC1:")) {
