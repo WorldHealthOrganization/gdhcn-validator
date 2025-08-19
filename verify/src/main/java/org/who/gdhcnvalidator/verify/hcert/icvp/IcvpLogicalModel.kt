@@ -13,5 +13,5 @@ open class IcvpLogicalModel(
     guardian: StringType?,
 
     issuer: Reference?,
-    vaccineDetails: DvcVaccineDetails
+    vaccineDetails: IcvpVaccineDetails
 ): DvcLogicalModel(name, dob, sex, nationality, nid, ndt, guardian, issuer, vaccineDetails)
