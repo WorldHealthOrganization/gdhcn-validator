@@ -70,9 +70,9 @@ class VhlIntegrationTest : BaseTrustRegistryTest() {
         val vhlModel = SmartHealthLinkModel(StringType("vhlink:/test"))
         assertTrue("Should detect VHL URI", vhlModel.isVHL())
         
-        // Test SHL detection  
+        // Test SHL detection - should NOT be detected as VHL
         val shlModel = SmartHealthLinkModel(StringType("shlink:/test"))
-        assertTrue("Should detect SHL URI as VHL", shlModel.isVHL())
+        assertFalse("Should NOT detect SHL URI as VHL", shlModel.isVHL())
         
         // Test non-VHL URI
         val otherModel = SmartHealthLinkModel(StringType("https://example.com"))
