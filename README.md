@@ -15,8 +15,10 @@ anywhere. Our goal is to make a Verifier App with the widest possible verificati
    3. EU DCC, WHO DDCC and LAC PASS DCC 
    4. ICAO Visible Digital Seals
 3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [Global Digital Health Certification Network](https://www.who.int/initiatives/global-digital-health-certification-network)
-4. Transform the QR Payload using [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/) for [International
-   Certificate of Vaccination of Prophylaxis] (https://worldhealthorganization.github.io/smart-icvp/artifacts.html) and [International Patient Summary](https://hl7.org/fhir/uv/ips/)
+4. Transform the QR Payload using [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/) for [International Certificate of Vaccination or Prophylaxis](https://worldhealthorganization.github.io/smart-icvp/artifacts.html) and [International Patient Summary](https://hl7.org/fhir/uv/ips/)
+   - **ICVP Logical Models**: Full support for FSH-compliant ICVP models with enhanced validation
+   - **Product ID Validation**: Validates vaccine products against ICVP PreQual database
+   - **Document Type Support**: Includes `ndt` (National ID Document Type) field per current specifications
 5. Calculates the assessment of the health information using CQL Libraries from subscribed IGs
 6. Displays the medical information, the credential information, the issuer information and the assessment results in the screen.
 

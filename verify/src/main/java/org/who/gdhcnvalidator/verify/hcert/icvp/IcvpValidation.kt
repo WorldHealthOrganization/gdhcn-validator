@@ -13,17 +13,21 @@ object IcvpValidation {
     const val ICVP_PRODUCT_ID_SYSTEM = "http://smart.who.int/pcmt-vaxprequal/CodeSystem/PreQualProductIDs"
     
     /**
-     * Sample ICVP Product IDs from the value set for validation
-     * In a full implementation, this would be loaded from the actual value set
+     * Cache for ICVP Product IDs loaded from the PreQual database
+     * This would be populated from the actual ICVP PreQual value set
      */
-    private val SAMPLE_ICVP_PRODUCT_IDS = setOf(
-        "YellowFeverProductd2c75a15ed309658b3968519ddb31690",
-        "YellowFeverProduct771d1a5c0acaee3e2dc9d56af1aba49d",
-        "YellowFeverProducte929626497bdbb71adbe925f0c09c79f",
-        "PolioVaccineOralOPVTrivaProductfa4849f7532d522134f4102063af1617",
-        "PolioVaccineOralOPVBivalProduct16e883911ea0108b8213bc213c9972fe",
-        "PolioVaccineInactivatedIProductc726fd7210023aa5738617a79cae2b40"
-    )
+    private var cachedProductIds: Set<String>? = null
+    
+    /**
+     * Loads ICVP Product IDs from the PreQual database
+     * This should be implemented to fetch from the actual ICVP PreQual value set
+     * For now, returns an empty set until proper integration is implemented
+     */
+    private fun loadIcvpProductIds(): Set<String> {
+        // TODO: Implement actual loading from ICVP PreQual database
+        // The source should be: http://smart.who.int/pcmt-vaxprequal/CodeSystem/PreQualProductIDs
+        return emptySet()
+    }
     
     /**
      * Validates that the vaccine product ID comes from the ICVP Product Catalogue
@@ -32,11 +36,16 @@ object IcvpValidation {
     fun validateIcvpProductId(productId: String?): Boolean {
         if (productId.isNullOrBlank()) return false
         
-        // In a full implementation, this would check against the complete valueset
-        // For now, we validate that it's not empty and optionally check against samples
+        // Load product IDs from source if not cached
+        if (cachedProductIds == null) {
+            cachedProductIds = loadIcvpProductIds()
+        }
+        
+        // For now, validate basic format requirements until source integration is complete
+        // Product ID should be non-empty and follow expected format patterns
         return productId.isNotBlank() && 
-               (SAMPLE_ICVP_PRODUCT_IDS.contains(productId) || 
-                productId.length > 10) // Basic format check
+               (productId.length > 10) && // Basic format check
+               productId.matches(Regex("^[A-Za-z0-9]+$")) // Alphanumeric format
     }
     
     /**

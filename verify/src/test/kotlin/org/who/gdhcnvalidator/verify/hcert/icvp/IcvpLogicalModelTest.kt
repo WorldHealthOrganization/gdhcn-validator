@@ -170,19 +170,22 @@ class IcvpLogicalModelTest {
 
     @Test
     fun testIcvpProductIdValidation() {
-        // Test with valid product IDs from the sample set
-        assertTrue("Should accept valid Yellow Fever product", 
+        // Test with valid format product IDs (alphanumeric, longer than 10 chars)
+        assertTrue("Should accept properly formatted Yellow Fever product", 
             IcvpValidation.validateIcvpProductId("YellowFeverProductd2c75a15ed309658b3968519ddb31690"))
-        assertTrue("Should accept valid Polio product", 
+        assertTrue("Should accept properly formatted Polio product", 
             IcvpValidation.validateIcvpProductId("PolioVaccineOralOPVTrivaProductfa4849f7532d522134f4102063af1617"))
         
         // Test invalid cases
         assertFalse("Should reject null", IcvpValidation.validateIcvpProductId(null))
         assertFalse("Should reject empty", IcvpValidation.validateIcvpProductId(""))
         assertFalse("Should reject blank", IcvpValidation.validateIcvpProductId("   "))
+        assertFalse("Should reject short IDs", IcvpValidation.validateIcvpProductId("short"))
         
-        // Test unknown but reasonably formatted IDs
-        assertTrue("Should accept unknown but properly formatted ID", 
+        // Test format validation
+        assertTrue("Should accept alphanumeric format", 
             IcvpValidation.validateIcvpProductId("SomeNewVaccineProduct123456789abcdef"))
+        assertFalse("Should reject special characters", 
+            IcvpValidation.validateIcvpProductId("Invalid-Product-ID@#$"))
     }
 }
