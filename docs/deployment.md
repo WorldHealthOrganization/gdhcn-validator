@@ -214,17 +214,273 @@ HEROKU_API_KEY=your_heroku_api_key
 HEROKU_EMAIL=your_heroku_email
 ```
 
-### Heroku Review Apps Setup
+### Heroku Deployment Setup
 
-To enable automatic Heroku deployments for PRs:
+This section provides complete step-by-step instructions for deploying the GDHCN Validator web application to Heroku, including both manual deployment and automated Review Apps for pull requests.
 
-1. **Create a Heroku app** for your base environment
-2. **Enable Review Apps** in Heroku Dashboard
-3. **Configure GitHub variables**:
+#### Prerequisites
+
+1. **Heroku Account**: Create a free account at [heroku.com](https://heroku.com)
+2. **Heroku CLI**: Install from [devcenter.heroku.com/articles/heroku-cli](https://devcenter.heroku.com/articles/heroku-cli)
+3. **Git**: Required for deployment
+4. **GitHub Repository Access**: Admin access to configure secrets and variables
+
+#### Step 1: Install and Setup Heroku CLI
+
+```bash
+# Install Heroku CLI (macOS)
+brew tap heroku/brew && brew install heroku
+
+# Install Heroku CLI (Ubuntu/Debian)
+curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
+# Install Heroku CLI (Windows)
+# Download installer from https://devcenter.heroku.com/articles/heroku-cli
+
+# Login to Heroku
+heroku login
+```
+
+#### Step 2: Create Main Heroku Application
+
+```bash
+# Create the main application
+heroku create gdhcn-validator
+
+# Or use a custom name
+heroku create your-app-name
+
+# Set Java runtime version
+heroku config:set JAVA_TOOL_OPTIONS="-Xmx512m" --app your-app-name
+
+# Verify the app was created
+heroku apps:info your-app-name
+```
+
+#### Step 3: Configure Heroku Application
+
+```bash
+# Set up Java buildpack (if not automatically detected)
+heroku buildpacks:set heroku/java --app your-app-name
+
+# Configure environment variables
+heroku config:set SPRING_PROFILES_ACTIVE=production --app your-app-name
+
+# View current configuration
+heroku config --app your-app-name
+```
+
+#### Step 4: Manual Deployment (One-time)
+
+```bash
+# Clone and deploy the repository manually
+git clone https://github.com/WorldHealthOrganization/gdhcn-validator.git
+cd gdhcn-validator
+
+# Add Heroku remote
+heroku git:remote -a your-app-name
+
+# Deploy current branch
+git push heroku main
+
+# View logs
+heroku logs --tail --app your-app-name
+
+# Open the deployed application
+heroku open --app your-app-name
+```
+
+#### Step 5: Enable Review Apps for Pull Requests
+
+Review Apps automatically create temporary apps for each pull request, allowing you to test changes before merging.
+
+##### 5.1: Enable Review Apps in Heroku Dashboard
+
+1. Go to [dashboard.heroku.com](https://dashboard.heroku.com)
+2. Select your main app (`your-app-name`)
+3. Click on the **"Deploy"** tab
+4. Scroll down to **"Review Apps"** section
+5. Click **"Enable Review Apps"**
+6. Choose **"Create new review apps for pull requests automatically"**
+7. Set **"Destroy stale review apps automatically"** (recommended: after 5 days)
+8. Click **"Enable Review Apps"**
+
+##### 5.2: Connect GitHub Repository
+
+1. In the same **"Deploy"** tab, find **"Deployment method"**
+2. Click **"GitHub"** and connect your GitHub account
+3. Search for and select **"WorldHealthOrganization/gdhcn-validator"**
+4. Click **"Connect"**
+5. **Do not** enable automatic deploys for main branch (we use GitHub Actions instead)
+
+#### Step 6: Configure GitHub Repository
+
+##### 6.1: Add GitHub Secrets
+
+Go to your GitHub repository settings → Secrets and variables → Actions → Secrets:
+
+```bash
+# Get your Heroku API key
+heroku auth:token
+```
+
+Add these secrets:
+- **Name**: `HEROKU_API_KEY`
+- **Value**: `your-heroku-api-key-from-above-command`
+
+- **Name**: `HEROKU_EMAIL`  
+- **Value**: `your-heroku-account-email@example.com`
+
+##### 6.2: Add GitHub Variables
+
+Go to your GitHub repository settings → Secrets and variables → Actions → Variables:
+
+- **Name**: `HEROKU_APP_NAME`
+- **Value**: `your-app-name` (the base app name without any suffixes)
+
+#### Step 7: Test Review Apps
+
+1. **Create a test pull request**:
+   ```bash
+   git checkout -b test-heroku-deployment
+   echo "# Test deployment" >> README.md
+   git add README.md
+   git commit -m "Test: Heroku deployment"
+   git push origin test-heroku-deployment
    ```
-   HEROKU_APP_NAME=your-base-app-name
-   ```
-4. **Add Heroku secrets** to GitHub repository
+
+2. **Create PR on GitHub**:
+   - Go to your repository on GitHub
+   - Click "Compare & pull request"
+   - Create the pull request
+
+3. **Verify automatic deployment**:
+   - GitHub Actions workflow should trigger automatically
+   - Check the Actions tab for "Preview Branch Deployment" workflow
+   - A comment should appear on the PR with deployment links
+   - A new Heroku app should be created: `your-app-name-pr-123`
+
+#### Step 8: Monitor and Manage Deployments
+
+##### View Heroku Apps
+```bash
+# List all apps
+heroku apps
+
+# View specific app info
+heroku apps:info your-app-name-pr-123
+
+# View recent deployments
+heroku releases --app your-app-name
+```
+
+##### Check Application Health
+```bash
+# View logs
+heroku logs --tail --app your-app-name
+
+# Check app status
+heroku ps --app your-app-name
+
+# Scale dynos (if needed)
+heroku ps:scale web=1 --app your-app-name
+```
+
+##### Manual Review App Management
+```bash
+# Create a review app manually
+heroku review-apps:create --app your-app-name --pr 123
+
+# Destroy a review app
+heroku apps:destroy your-app-name-pr-123 --confirm your-app-name-pr-123
+```
+
+#### Step 9: Production Deployment Configuration
+
+For production deployments, configure additional settings:
+
+```bash
+# Set production environment
+heroku config:set NODE_ENV=production --app your-app-name
+heroku config:set SPRING_PROFILES_ACTIVE=production --app your-app-name
+
+# Configure SSL (automatically enabled on paid plans)
+heroku certs:auto:enable --app your-app-name
+
+# Set up custom domain (optional)
+heroku domains:add yourdomain.com --app your-app-name
+
+# Configure logging
+heroku logs --tail --app your-app-name
+```
+
+#### Troubleshooting Heroku Deployments
+
+##### Common Issues and Solutions
+
+**Issue**: Review App creation fails
+```
+Error: Could not create review app
+```
+**Solutions**:
+1. Verify `HEROKU_API_KEY` secret is correct
+2. Check that Review Apps are enabled in Heroku Dashboard
+3. Ensure the base app exists and is accessible
+4. Verify GitHub-Heroku connection is active
+
+**Issue**: Build failure during deployment
+```
+Error: Failed to compile app
+```
+**Solutions**:
+1. Check Heroku build logs: `heroku logs --app your-app-name-pr-123`
+2. Verify `Procfile` is present and correct
+3. Check `system.properties` specifies Java 17
+4. Ensure `gradlew build` works locally
+
+**Issue**: Application won't start
+```
+Error R10 (Boot timeout)
+```
+**Solutions**:
+1. Check application logs: `heroku logs --tail --app your-app-name`
+2. Verify `$PORT` environment variable is used in the application
+3. Check that the WAR file is built correctly
+4. Increase dyno memory if needed: `heroku ps:scale web=1:standard-1x`
+
+**Issue**: Review Apps not being destroyed
+**Solutions**:
+1. Enable automatic destruction in Heroku Dashboard
+2. Manually destroy old apps: `heroku apps:destroy app-name --confirm app-name`
+3. Set up automated cleanup with GitHub Actions
+
+##### Debug Commands
+
+```bash
+# Check Heroku configuration
+heroku config --app your-app-name
+
+# View application processes
+heroku ps --app your-app-name
+
+# Access application shell
+heroku run bash --app your-app-name
+
+# View build logs
+heroku builds --app your-app-name
+
+# Check app size and resources
+heroku apps:info your-app-name
+```
+
+#### Cost Considerations
+
+- **Free Tier**: Up to 5 apps, 550-1000 dyno hours/month
+- **Review Apps**: Each PR creates a new app (counts toward app limit)
+- **Automatic Scaling**: Consider destroying stale review apps automatically
+- **Production**: Hobby ($7/month) or Professional ($25-500/month) plans for production use
+
+For more information, see [Heroku Pricing](https://www.heroku.com/pricing)
 
 ### Custom Preview Environments
 

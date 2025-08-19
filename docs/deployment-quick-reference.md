@@ -40,8 +40,30 @@ git push origin main && git push origin v1.2.3
 ## Quick Setup
 
 ### For Heroku Review Apps
-1. Set GitHub variable: `HEROKU_APP_NAME=your-app`
-2. Add secrets: `HEROKU_API_KEY`, `HEROKU_EMAIL`
+1. Create Heroku app: `heroku create your-app-name`
+2. Enable Review Apps in Heroku Dashboard
+3. Set GitHub variable: `HEROKU_APP_NAME=your-app-name`
+4. Add secrets: `HEROKU_API_KEY`, `HEROKU_EMAIL`
+
+### Essential Heroku Commands
+```bash
+# Setup
+heroku login
+heroku create your-app-name
+heroku buildpacks:set heroku/java
+
+# Deploy manually
+git push heroku main
+
+# Monitor
+heroku logs --tail
+heroku ps
+heroku apps:info your-app-name
+
+# Review Apps
+heroku apps                    # List all apps
+heroku apps:destroy app-name   # Clean up old review apps
+```
 
 ### For Signed Releases  
 Add these GitHub secrets:
