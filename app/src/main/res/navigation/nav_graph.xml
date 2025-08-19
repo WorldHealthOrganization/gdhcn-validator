@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/HomeFragment"
-        android:name="org.who.ddccverifier.views.HomeFragment"
+        android:name="org.who.gdhcnvalidator.views.HomeFragment"
         android:label="@string/home_fragment_label"
         tools:layout="@layout/fragment_home">
 
@@ -18,7 +18,7 @@
 
     <fragment
         android:id="@+id/QRScanFragment"
-        android:name="org.who.ddccverifier.views.ScanFragment"
+        android:name="org.who.gdhcnvalidator.views.ScanFragment"
         android:label="@string/qrscan_fragment_label"
         tools:layout="@layout/fragment_scan">
 
@@ -33,7 +33,7 @@
 
     <fragment
         android:id="@+id/QRResultFragment"
-        android:name="org.who.ddccverifier.views.ResultFragment"
+        android:name="org.who.gdhcnvalidator.views.ResultFragment"
         android:label="@string/qrresult_fragment_label"
         tools:layout="@layout/fragment_result">
 

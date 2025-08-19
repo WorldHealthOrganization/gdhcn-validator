@@ -1,8 +1,10 @@
-# World Health Organization's DDCC Verifier App
+# World Health Organization's GDHCN Verifier App
 
 <img align="right" src="./docs/screenshots/3.Results.png" data-canonical-src="./docs/screenshots/3.Results.png" width="350px"/>
 
-COVID-19 Credential Verifier app for Android using the WHO's Digital Documentation of COVID-19 Certificates. The app scans a QR code for a credential/pass, cryptographically verifies it and displays the results on the phone. No information is transmitted anywhere. Our goal is to make a Verifier App with the widest possible verification capabilities.
+Digital Health Certificates verifier app for Android. The app scans a QR code for a credential/pass, 
+cryptographically verifies it and displays the results on the phone. No information is transmitted 
+anywhere. Our goal is to make a Verifier App with the widest possible verification capabilities.
 
 # Current Features
 
@@ -10,25 +12,32 @@ COVID-19 Credential Verifier app for Android using the WHO's Digital Documentati
 2. Cryptographically Verifies the information following the specifications of
    1. W3C VC
    2. Smart Health Cards 
-   3. EU DCC, WHO DCC and LAC PASS DCC 
+   3. EU DCC, WHO DDCC and LAC PASS DCC 
    4. ICAO Visible Digital Seals
-3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [DDCC repo](https://github.com/WorldHealthOrganization/ddcc-trust)
-4. Transform the QR Payload using the DDCC [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/)
+3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [Global Digital Health Certification Network](https://www.who.int/initiatives/global-digital-health-certification-network)
+4. Transform the QR Payload using [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/) for [International
+   Certificate of Vaccination of Prophylaxis] (https://worldhealthorganization.github.io/smart-icvp/artifacts.html) and [International Patient Summary](https://hl7.org/fhir/uv/ips/)
 5. Calculates the assessment of the health information using CQL Libraries from subscribed IGs
 6. Displays the medical information, the credential information, the issuer information and the assessment results in the screen.
 
-# Development Overview
+Reference documentation can be found at:
+- https://worldhealthorganization.github.io/smart-trust/
+- https://worldhealthorganization.github.io/smart-icvp
+- https://worldhealthorganization.github.io/ddcc/
+- https://smart.who.int/trust/
 
+# Development Overview
+- 
 ## Setup
 
 Make sure to have the following pre-requisites installed:
-1. Java 11
-2. Android Studio Artic Fox+
+1. Java 17
+2. Android Studio Koala+
 3. Android 7.0+ Phone or Emulation setup
 
 Fork and clone this repository and import into Android Studio
 ```bash
-git clone https://github.com/WorldHealthOrganization/ddcc-validator.git
+git clone https://github.com/WorldHealthOrganization/gdhcn-validator.git
 ```
 
 Use one of the Android Studio builds to install and run the app in your device or a simulator.
@@ -62,7 +71,7 @@ Follow server setup [here](https://www.keycloak.org/getting-started/getting-star
 8. Create a client with: 
   - Client Id: verifier-app 
   - Client Protocol: openid-connect
-  - Redirect URIs: org.who.ddccverifier:/redirect
+  - Redirect URIs: org.who.gdhcnverifier:/redirect
 
 Start keycloak with the local network's IP a phone can reach:
 ```bash
@@ -78,7 +87,7 @@ Android will connect with your local IP. Just make sure the phone is in the same
 │                  MainActivity                    │      │ TrustRegistry  │   │ IgRegistry │
 └──────────────────────────────────────────────────┘      └─────────────╥──┘   └─────╥──────┘
 ┌──────────────┐ ┌──────────────┐ ┌────────────────┐                    ║            ║
-│ HomeFragment ├→┤ ScanFragment ├→┤ ResultFragment │←─DDCC UI Card──────╫─────────┐  ║
+│ HomeFragment ├→┤ ScanFragment ├→┤ ResultFragment │←─GDHCN UI Card─────╫─────────┐  ║
 └──────────────┘ └─────┬──▲─────┘ └────────┬───────┘                    ║         │  ║
                   Image│  │QRContent       │QRContent                   ║         │  ║
                  ┌─────▼──┴─────┐     ┌────▼───────┐                    ║         │  ║
@@ -98,7 +107,7 @@ Android will connect with your local IP. Just make sure the phone is in the same
       │WhoModel  │DccModel    │ShcModel          │DivocModel         │IcaoModel   │  ║
 ╔═════╪══════════╪════════════╪══════════════════╪═══════════════════╪═════════╗  │  ║ StructureMaps
 ║ ┌───▼───────┐┌─▼─────────┐┌─▼─────────┐  ┌─────▼───────┐ ┌─────────▼───────┐ ║  │  ║ 
-║ │ WHOMapper ││ DCCMapper ││ JWTMapper │  │ DivocMapper │ │   IJsonMapper   │ ║══│══╝
+║ │ DDCCMapper││ DCCMapper ││ JWTMapper │  │ DivocMapper │ │   IJsonMapper   │ ║══│══╝
 ║ └───┬───────┘└──┬────────┘└─┬─────────┘  └─────┬───────┘ └─────────┬───────┘ ║  │  ║
 ╚═════╪═══════════╪═══════════╪══════════════════╪═══════════════════╪═════════╝  │  ║
       └───────────┴───────────┴────────────┬─────┴───────────────────┘            │  ║
@@ -119,11 +128,11 @@ Android will connect with your local IP. Just make sure the phone is in the same
                                            │Patient ID, Rule ID                   │
                                  ┌─────────▼──────────────┐                       │
                                  │  Android Fhir Workflow │                       │
-                                 │ (Evaluate DDCC Status) │                       │  
+                                 │   (Evaluate Status)    │                       │  
                                  └─────────┬──────────────┘                       │
-                                           │DDCC Composite, DDCC Status           │
+                                           │Fhir Composite, Status                │
                                     ┌──────▼─────────┐                            │
-                                    │ DDCCFormatter  ├→─ DDCC UI Card ────────────┘
+                                    │    Formatter   ├→─ UI Card ─────────────────┘
                                     └────────────────┘
 ```
 
@@ -141,13 +150,13 @@ keytool -genkey -v -keystore <my-release-key.keystore> -alias <alias_name> -keya
 3. Change the `versionCode` and `versionName` on `app/build.gradle`
 4. Commit and push. 
 5. Tag the commit with `v{x.x.x}`
-6. Let the [Create Release GitHub Action](https://github.com/WorldHealthOrganization/ddcc-validator/actions/workflows/create-release.yml) build a new `aab` file. 
+6. Let the [Create Release GitHub Action](https://github.com/WorldHealthOrganization/gdhcn-validator/actions/workflows/create-release.yml) build a new `aab` file. 
 7. Add your CHANGE LOG to the description of the new release
 8. Download the `aab` file and upload it to the` PlayStore. 
 
 # Contributing
 
-[Issues](https://github.com/WorldHealthOrganization/ddcc-validator/issues) and [pull requests](https://github.com/WorldHealthOrganization/ddcc-validator/pulls) are very welcome.
+[Issues](https://github.com/WorldHealthOrganization/gdhcn-validator/issues) and [pull requests](https://github.com/WorldHealthOrganization/gdhcn-validator/pulls) are very welcome.
 
 # License
 

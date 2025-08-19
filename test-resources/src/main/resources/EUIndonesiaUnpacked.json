@@ -1,0 +1,36 @@
+{
+  "protectedAttributes": {
+    "1": -7,
+    "4": "-EcGd0CKYtg"
+  },
+  "unprotectedAttributes": {},
+  "contents": {
+    "1": "ID",
+    "4": 1689331521,
+    "6": 1657795521,
+    "-260": {
+      "1": {
+        "v": [
+          {
+            "ci": "URN:UVCI:01:ID:672865692",
+            "co": "ID",
+            "dn": 3,
+            "dt": "2022-03-05",
+            "is": "Indonesia",
+            "ma": "",
+            "mp": "",
+            "sd": 3,
+            "tg": "840539006",
+            "vp": ""
+          }
+        ],
+        "dob": "1988-05-15",
+        "nam": {
+          "fn": "PAULUS WISNU ADITYA BASWORO",
+          "fnt": "BASWORO<<PAULUS<WISNU<ADITYA"
+        },
+        "ver": "1.3.0"
+      }
+    }
+  }
+}

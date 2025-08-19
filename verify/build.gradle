@@ -4,30 +4,41 @@ plugins {
 }
 
 java {
-    group = "org.who.ddccverifier.trust"
+    group = "org.who.gdhcnvalidator.trust"
     version = "0.0.1-SNAPSHOT"
 
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+    jvmToolchain(17)
 }
 
 dependencies {
     implementation project(":trust")
 
-    implementation group: 'com.apicatalog', name: 'titanium-json-ld', version: '1.3.1'
+    implementation group: 'com.apicatalog', name: 'titanium-json-ld', version: '1.4.1'
 
     // Necessary to unpack the EU's DDC HCERT QR Codes.
     implementation 'io.github.ehn-digital-green-development:base45:0.0.3'
     implementation 'com.augustcellars.cose:cose-java:1.1.0'
 
     // Necessary to unpack SHC QR Codesjsonld-common-java
-    implementation 'com.nimbusds:nimbus-jose-jwt:9.20'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
     // using from Libs: Titanium jsonld requires valid DIDs. Since DIVOC uses invalid dids,
     // we are using a modified version that removes the skipping of invalid URIs on JsonLdToRdf
     //implementation (group: 'com.apicatalog', name: 'titanium-json-ld', version: '1.3.0-SNAPSHOT') //https://github.com/decentralized-identity/jsonld-common-java/pull/6
-    implementation ('io.setl:rdf-urdna:1.1') { //https://github.com/decentralized-identity/jsonld-common-java/pull/6
+    implementation ('io.setl:rdf-urdna:1.2') { //https://github.com/decentralized-identity/jsonld-common-java/pull/6
         exclude group: 'com.apicatalog', module: 'titanium-json-ld'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8'
     }
 
     implementation ('info.weboftrust:ld-signatures-java:1.0.0') {
@@ -41,8 +52,24 @@ dependencies {
     // Required for ICAO QR Codes
     implementation 'io.github.erdtman:java-json-canonicalization:1.1'
 
-    // Necessary to Convert the QR into the DDCC FHIR Composite
-    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.0.3'
+    // Necessary to Convert the QR into the FHIR Composite
+    implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3'
+
+    // Makes FHIR Resources available when processing structure maps (must match Android FHIR Engine)
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation-resources-r4:6.8.3')
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-validation:6.8.3')
+    implementation('ca.uhn.hapi.fhir:hapi-fhir-caching-guava:6.8.3') {
+        exclude(group: 'com.google.guava', module: 'guava')
+    }
+    implementation('com.google.guava:guava:33.3.0-android')
+
+    // XML Loaders for the validation resouces
+    implementation('com.fasterxml.woodstox:woodstox-core:6.7.0')
+    implementation('xerces:xercesImpl:2.12.2')
+
+    // To unpack IG.tar.gz
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
 
     // Use BouncyCastle to not rely on each Android's version ability to unpack and load public keys
     // Android 10+ issues due to the move to Conscript on a older version of BC
@@ -50,11 +77,11 @@ dependencies {
     //implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'
 
     // Necessary to call JSON APIs (Download the Trust Registry)
-    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2'
 
-    implementation 'org.fhir:ucum:1.0.3'
+    implementation 'org.fhir:ucum:1.0.8'
 
-    testImplementation "com.google.truth:truth:1.1.3"
+    testImplementation "com.google.truth:truth:1.1.5"
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-inline:4.8.1'
     testImplementation project(':test-resources')

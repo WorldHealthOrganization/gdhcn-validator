@@ -1,9 +1,13 @@
 <resources>
-    <string name="app_name">DDCC Verifier</string>
+    <string name="app_name">GDHCN Validator</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_logout">Logout</string>
+    <string name="trust_lists">Trust Lists</string>
+    <string name="select_active_trust_lists">Select active trust lists</string>
+    <string name="ok">Ok</string>
+
     <!-- Strings used for fragments for navigation -->
-    <string name="home_fragment_label">WHO DDCC Verifier</string>
+    <string name="home_fragment_label">WHO GDHCN Validator</string>
     <string name="qrscan_fragment_label">QR Scan</string>
     <string name="qrresult_fragment_label">QR Result</string>
 
@@ -13,6 +17,8 @@
 
     <string name="pointToQR">Align the QR Code below</string>
     <string name="emptyCardDesc">Saved credentials will appear here.</string>
+
+    <string name="add_new_card">Add new card</string>
 
     <string name="hello_home_fragment">Hello Home Page</string>
     <string name="hello_qrscan_fragment">Hello QR Scan. Arg: %1$s</string>

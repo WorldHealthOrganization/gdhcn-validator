@@ -4,11 +4,11 @@ plugins {
 }
 
 java {
-    group = "org.who.ddccverifier.trust.didweb"
+    group = "org.who.gdhcnvalidator.trust.didweb"
     version = "0.0.1-SNAPSHOT"
 
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
@@ -16,20 +16,16 @@ dependencies {
     implementation project(":trust")
 
     // Provides the DID Document object
-    implementation ('decentralized-identity:did-common-java:1.2.0') {
-        // using from Libs remove when this PR gets approved: https://github.com/decentralized-identity/jsonld-common-java/pull/6
-        exclude group: 'com.apicatalog', module: 'titanium-json-ld'
-    }
-
-    implementation group: 'com.apicatalog', name: 'titanium-json-ld', version: '1.3.1'
+    implementation 'decentralized-identity:did-common-java:1.11.0'
 
     // Necessary to call JSON APIs (Parse the DID Document)
-    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.17.2'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2'
 
     // Adds BouncyCastle to work with keys.
     implementation 'org.bouncycastle:bcpkix-jdk15to18:1.68'
     // Adds JWK parsing capability
-    implementation 'com.nimbusds:nimbus-jose-jwt:9.25.6'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 
     // Adds Multibase/Base 58 support
     implementation 'com.github.multiformats:java-multibase:v1.0.0'

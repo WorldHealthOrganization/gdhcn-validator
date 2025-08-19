@@ -1,0 +1,35 @@
+{
+  "protectedAttributes": {
+    "1": -7,
+    "4": "UUuJcwmjoJM"
+  },
+  "unprotectedAttributes": {},
+  "contents": {
+    "1": "XL",
+    "6": 1726079949,
+    "-260": {
+      "-6": {
+        "n": "Aulo Agerio",
+        "s": "M",
+        "v": {
+          "bo": "123123123",
+          "cn": "Vacunador",
+          "dn": "Primary",
+          "dt": "1904-08-23",
+          "is": "reference to organzation",
+          "ma": "HIPRA",
+          "mp": "1",
+          "tg": "1D47",
+          "vp": "XM0N24",
+          "mid": "25",
+          "vle": "2015-02-07",
+          "vls": "2015-02-07"
+        },
+        "gn": "Parent/Juan Medina",
+        "dob": "1905-08-23",
+        "nid": "16337361-9",
+        "ntl": "CL"
+      }
+    }
+  }
+}
