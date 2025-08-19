@@ -20,7 +20,14 @@ anywhere. Our goal is to make a Verifier App with the widest possible verificati
 5. Calculates the assessment of the health information using CQL Libraries from subscribed IGs
 6. Displays the medical information, the credential information, the issuer information and the assessment results in the screen.
 
-Reference documentation can be found at:
+## Documentation
+
+### Project Documentation
+- [**Data Models**](docs/data-models.md) - Comprehensive documentation of all supported certificate data models (DDCC, DCC, DIVOC, SHC, ICAO, ICVP)
+- [**User Workflows**](docs/user-workflows.md) - User experience and technical workflow documentation
+- [**Adding New Schemas**](NEW_SCHEMAS.md) - Guide for adding support for new certificate formats
+
+### Reference Documentation
 - https://worldhealthorganization.github.io/smart-trust/
 - https://worldhealthorganization.github.io/smart-icvp
 - https://worldhealthorganization.github.io/ddcc/
