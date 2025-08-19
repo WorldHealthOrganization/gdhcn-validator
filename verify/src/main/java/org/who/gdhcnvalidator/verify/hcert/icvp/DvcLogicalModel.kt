@@ -20,13 +20,14 @@ open class DvcLogicalModel(
     var nationality: CodeType? = null,
 
     var nid: StringType? = null,
+    var ndt: CodeType? = null, // National ID Document Type
     var guardian: StringType? = null,
 
     @JsonDeserialize(using = ReferenceDeserializer::class)
     var issuer: Reference? = null,
     var vaccineDetails: DvcVaccineDetails? = null,
 ): BaseModel() {
-    override fun copy(): Resource? { return DvcLogicalModel(name, dob, sex, nationality, nid, guardian, issuer, vaccineDetails) }
+    override fun copy(): Resource? { return DvcLogicalModel(name, dob, sex, nationality, nid, ndt, guardian, issuer, vaccineDetails) }
     override fun getResourceType(): ResourceType? {
         println("DvcLogicalModel GetResourceType")
         return ResourceType.StructureDefinition
@@ -52,6 +53,7 @@ open class DvcLogicalModel(
             "sex".hashCode() -> sex = (value as? CodeType)
             "nationality".hashCode() -> nationality = (value as? CodeType)
             "nid".hashCode() -> nid = (value as? StringType)
+            "ndt".hashCode() -> ndt = (value as? CodeType)
             "guardian".hashCode() -> guardian = (value as? StringType)
             "vaccineDetails".hashCode() -> vaccineDetails = (value as? DvcVaccineDetails)
             else -> super.setProperty(hash, name, value)
@@ -67,6 +69,7 @@ open class DvcLogicalModel(
             "sex" -> sex = (value as? CodeType)
             "nationality" -> nationality = (value as? CodeType)
             "nid" -> nid = (value as? StringType)
+            "ndt" -> ndt = (value as? CodeType)
             "guardian" -> guardian = (value as? StringType)
             "vaccineDetails" -> vaccineDetails = (value as? DvcVaccineDetails)
             else -> super.setProperty(name, value)
