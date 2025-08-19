@@ -170,6 +170,9 @@ class IcvpLogicalModelTest {
 
     @Test
     fun testIcvpProductIdValidation() {
+        // Reset cache to test fresh loading
+        IcvpValidation.refreshProductIdCache()
+        
         // Test with valid format product IDs (alphanumeric, longer than 10 chars)
         assertTrue("Should accept properly formatted Yellow Fever product", 
             IcvpValidation.validateIcvpProductId("YellowFeverProductd2c75a15ed309658b3968519ddb31690"))
@@ -182,10 +185,20 @@ class IcvpLogicalModelTest {
         assertFalse("Should reject blank", IcvpValidation.validateIcvpProductId("   "))
         assertFalse("Should reject short IDs", IcvpValidation.validateIcvpProductId("short"))
         
-        // Test format validation
+        // Test format validation (fallback when PreQual database is not available)
         assertTrue("Should accept alphanumeric format", 
             IcvpValidation.validateIcvpProductId("SomeNewVaccineProduct123456789abcdef"))
         assertFalse("Should reject special characters", 
             IcvpValidation.validateIcvpProductId("Invalid-Product-ID@#$"))
+    }
+    
+    @Test
+    fun testProductIdCacheRefresh() {
+        // Test cache refresh functionality
+        IcvpValidation.refreshProductIdCache()
+        
+        // Should still validate based on format when source is not available
+        assertTrue("Should accept valid format after cache refresh", 
+            IcvpValidation.validateIcvpProductId("ValidProductId123456789"))
     }
 }

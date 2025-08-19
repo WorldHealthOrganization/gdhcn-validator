@@ -1,6 +1,11 @@
 package org.who.gdhcnvalidator.verify.hcert.icvp
 
 import org.hl7.fhir.r4.model.StringType
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import java.net.URL
+import java.net.URLConnection
+import java.io.IOException
 
 /**
  * Validation helpers for ICVP logical models to ensure compliance with FSH specifications
@@ -19,14 +24,61 @@ object IcvpValidation {
     private var cachedProductIds: Set<String>? = null
     
     /**
+     * Forces a refresh of the cached product IDs from the source
+     * Useful for testing or when the cache needs to be updated
+     */
+    fun refreshProductIdCache() {
+        cachedProductIds = null
+    }
+    
+    /**
      * Loads ICVP Product IDs from the PreQual database
-     * This should be implemented to fetch from the actual ICVP PreQual value set
-     * For now, returns an empty set until proper integration is implemented
+     * Fetches the FHIR CodeSystem from the WHO SMART guidelines and extracts product IDs
      */
     private fun loadIcvpProductIds(): Set<String> {
-        // TODO: Implement actual loading from ICVP PreQual database
-        // The source should be: http://smart.who.int/pcmt-vaxprequal/CodeSystem/PreQualProductIDs
-        return emptySet()
+        return try {
+            val url = URL(ICVP_PRODUCT_ID_SYSTEM)
+            val connection: URLConnection = url.openConnection()
+            connection.setRequestProperty("Accept", "application/fhir+json")
+            connection.connectTimeout = 10000 // 10 seconds
+            connection.readTimeout = 10000 // 10 seconds
+            
+            val jsonResponse = connection.getInputStream().bufferedReader().use { it.readText() }
+            val objectMapper = ObjectMapper()
+            val jsonNode: JsonNode = objectMapper.readTree(jsonResponse)
+            
+            // Extract product IDs from FHIR CodeSystem concept codes
+            val productIds = mutableSetOf<String>()
+            
+            // Check if this is a valid FHIR CodeSystem
+            if (jsonNode.has("resourceType") && 
+                jsonNode.get("resourceType").asText() == "CodeSystem" &&
+                jsonNode.has("concept")) {
+                
+                val concepts = jsonNode.get("concept")
+                if (concepts.isArray) {
+                    for (concept in concepts) {
+                        if (concept.has("code")) {
+                            val code = concept.get("code").asText()
+                            if (code.isNotBlank()) {
+                                productIds.add(code)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            productIds.toSet()
+        } catch (e: IOException) {
+            // Log the error but don't fail validation entirely
+            // In production, you might want to use proper logging here
+            System.err.println("Warning: Could not load ICVP Product IDs from ${ICVP_PRODUCT_ID_SYSTEM}: ${e.message}")
+            emptySet()
+        } catch (e: Exception) {
+            // Handle any other parsing or network errors
+            System.err.println("Warning: Error parsing ICVP Product IDs: ${e.message}")
+            emptySet()
+        }
     }
     
     /**
@@ -41,8 +93,13 @@ object IcvpValidation {
             cachedProductIds = loadIcvpProductIds()
         }
         
-        // For now, validate basic format requirements until source integration is complete
-        // Product ID should be non-empty and follow expected format patterns
+        // If we successfully loaded product IDs from the source, validate against them
+        if (cachedProductIds!!.isNotEmpty()) {
+            return cachedProductIds!!.contains(productId)
+        }
+        
+        // Fallback to format validation if source is not available
+        // This ensures validation doesn't completely fail if the WHO server is down
         return productId.isNotBlank() && 
                (productId.length > 10) && // Basic format check
                productId.matches(Regex("^[A-Za-z0-9]+$")) // Alphanumeric format

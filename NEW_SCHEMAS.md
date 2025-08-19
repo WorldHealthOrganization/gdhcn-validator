@@ -47,10 +47,16 @@ All models now include the `ndt` (National ID Document Type) field as required b
 ### Key Features
 
 - **Type Safety**: `IcvpLogicalModel` uses `IcvpVaccineDetails` instead of generic `DvcVaccineDetails` to ensure ICVP-specific validation
-- **Validation**: Built-in constraint validation including:
-  - Product ID validation against ICVP PreQual database (when available)
-  - "must-have-issuer-or-clinician-name" invariant
+- **Dynamic Product Validation**: 
+  - Loads ICVP Product IDs directly from WHO SMART guidelines PreQual CodeSystem
+  - HTTP client implementation to fetch from `http://smart.who.int/pcmt-vaxprequal/CodeSystem/PreQualProductIDs`
+  - Graceful fallback to format validation when source is unavailable
+  - Caching mechanism for performance optimization
+- **Constraint Validation**: Built-in validation including:
+  - "must-have-issuer-or-clinician-name" invariant  
   - National ID document type validation against HL7 v2-0203
+- **Cache Management**: `refreshProductIdCache()` method for testing and cache updates
+- **Error Handling**: Robust error handling for network issues and malformed responses
 - **Backward Compatibility**: All constructors maintain default values for existing integrations 
 
 ## 4. Code the Mapper with Structure Maps
