@@ -137,4 +137,52 @@ class IcvpLogicalModelTest {
         assertTrue("Should contain invariant error", 
             errors.any { it.contains("Either issuer or clinicianName must be present") })
     }
+
+    @Test
+    fun testDvcLogicalModelValidation() {
+        val model = DvcLogicalModel(
+            name = StringType("John Doe"),
+            dob = DateType("1990-01-01"),
+            sex = CodeType("M"),
+            nationality = CodeType("US"),
+            nid = StringType("123456789"),
+            ndt = CodeType("PPN"), // Valid passport document type
+            guardian = StringType("Jane Doe"),
+            issuer = Reference("Organization/1"),
+            vaccineDetails = DvcVaccineDetails()
+        )
+        
+        val errors = model.validateIcvpConstraints()
+        assertTrue("Should pass validation with valid ndt", errors.isEmpty())
+    }
+
+    @Test
+    fun testNationalIdDocumentTypeValidation() {
+        // Test with valid ndt
+        assertTrue("PPN should be valid", IcvpValidation.validateNationalIdDocumentType("PPN"))
+        assertTrue("DL should be valid", IcvpValidation.validateNationalIdDocumentType("DL"))
+        assertTrue("null should be valid (optional)", IcvpValidation.validateNationalIdDocumentType(null))
+        assertTrue("empty should be valid (optional)", IcvpValidation.validateNationalIdDocumentType(""))
+        
+        // Test edge cases
+        assertTrue("Short codes should be valid", IcvpValidation.validateNationalIdDocumentType("XX"))
+    }
+
+    @Test
+    fun testIcvpProductIdValidation() {
+        // Test with valid product IDs from the sample set
+        assertTrue("Should accept valid Yellow Fever product", 
+            IcvpValidation.validateIcvpProductId("YellowFeverProductd2c75a15ed309658b3968519ddb31690"))
+        assertTrue("Should accept valid Polio product", 
+            IcvpValidation.validateIcvpProductId("PolioVaccineOralOPVTrivaProductfa4849f7532d522134f4102063af1617"))
+        
+        // Test invalid cases
+        assertFalse("Should reject null", IcvpValidation.validateIcvpProductId(null))
+        assertFalse("Should reject empty", IcvpValidation.validateIcvpProductId(""))
+        assertFalse("Should reject blank", IcvpValidation.validateIcvpProductId("   "))
+        
+        // Test unknown but reasonably formatted IDs
+        assertTrue("Should accept unknown but properly formatted ID", 
+            IcvpValidation.validateIcvpProductId("SomeNewVaccineProduct123456789abcdef"))
+    }
 }

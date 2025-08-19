@@ -80,4 +80,25 @@ open class DvcLogicalModel(
     override fun fhirType(): String {
         return "ModelDVC"
     }
+    
+    /**
+     * Validates ICVP constraints for the logical model
+     */
+    fun validateIcvpConstraints(): List<String> {
+        val errors = mutableListOf<String>()
+        
+        // Validate National ID Document Type
+        if (!IcvpValidation.validateNationalIdDocumentType(ndt?.value)) {
+            errors.add("National ID Document Type (ndt) must be a valid identifier type from v2-0203")
+        }
+        
+        // Validate vaccine details if present
+        vaccineDetails?.let { details ->
+            if (details is DvcVaccineDetails) {
+                errors.addAll(details.validateIcvpConstraints())
+            }
+        }
+        
+        return errors
+    }
 }
