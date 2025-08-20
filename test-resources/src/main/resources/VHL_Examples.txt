@@ -1,0 +1,16 @@
+# VHL Example QR Codes for Testing
+
+## VHL with PIN Required
+vhlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL21hbmlmZXN0IiwiZmxhZyI6IlAifQ==
+
+This decodes to: {"url":"https://example.com/manifest","flag":"P"}
+
+## VHL without PIN
+vhlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL21hbmlmZXN0In0=
+
+This decodes to: {"url":"https://example.com/manifest"}
+
+## VHL with Additional Parameters
+vhlink:/eyJ1cmwiOiJodHRwczovL2V4YW1wbGUuY29tL21hbmlmZXN0IiwiZmxhZyI6IlAiLCJrZXkiOiJhYmNkZWYxMjM0NTYiLCJsYWJlbCI6IlZhY2NpbmF0aW9uIFJlY29yZCIsImV4cCI6MTY5ODc2ODAwMH0=
+
+This decodes to: {"url":"https://example.com/manifest","flag":"P","key":"abcdef123456","label":"Vaccination Record","exp":1698768000}

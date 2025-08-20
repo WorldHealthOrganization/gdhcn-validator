@@ -147,6 +147,16 @@ Each format parses into its logical data model:
 - **SHC** → [`JWTPayload`](../verify/src/main/java/org/who/gdhcnvalidator/verify/shc/ShcModel.kt)
 - **ICAO** → [`IJson`](../verify/src/main/java/org/who/gdhcnvalidator/verify/icao/IcaoModel.kt)
 - **ICVP** → [`DvcLogicalModel`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/icvp/DvcLogicalModel.kt)
+- **VHL/SHL** → [`SmartHealthLinkModel`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/SmartHealthLinkModel.kt)
+
+#### 3.4.1 VHL (Verifiable Health Link) Special Processing
+
+VHL follows a different workflow from traditional health certificates:
+
+1. **URI Decoding**: `vhlink:/` or `shlink:/` URIs are base64 decoded to extract manifest URL
+2. **PIN Handling**: If required, user is prompted for PIN entry
+3. **Manifest Fetching**: HTTP request retrieves FHIR SearchSet Bundle with file list
+4. **File Presentation**: Available files (PDF, FHIR IPS) are displayed for user selection
 
 #### 3.5 FHIR Bundle Generation
 

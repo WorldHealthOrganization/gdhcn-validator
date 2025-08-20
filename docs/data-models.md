@@ -171,13 +171,32 @@ WHO's international vaccination certificate standard.
 
 **Mapper:** [`DvcMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/icvp/DvcMapper.kt)
 
-### 7. Smart Health Links
+### 7. Smart Health Links and Verifiable Health Links (VHL)
 
 **Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/SmartHealthLinkModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/SmartHealthLinkModel.kt)
 
-Support for Smart Health Links protocol for sharing health data.
+Support for Smart Health Links (SHL) and Verifiable Health Links (VHL) protocol for sharing health data.
 
-**Mapper:** [`HealthLinkMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/HealthLinkMapper.kt) (TODO: Implementation pending)
+#### SmartHealthLinkModel
+**Key Fields:**
+- `u: StringType` - URI containing the link to health data manifest
+
+**VHL Features:**
+- Supports both `vhlink:/` and `shlink:/` URI formats
+- Base64 decoding of URI payload to extract manifest URL
+- PIN requirement detection and handling
+- Manifest fetching with optional PIN parameter
+
+#### VHL Processing Flow
+1. **URI Detection**: QR codes starting with `vhlink:/` or `shlink:/` are identified as VHL
+2. **URI Decoding**: Base64 decode the URI payload to extract manifest URL and flags
+3. **PIN Handling**: If PIN is required (P flag), prompt user for PIN entry
+4. **Manifest Fetching**: HTTP request to retrieve FHIR SearchSet Bundle manifest
+5. **File Extraction**: Parse manifest to extract available files (PDF, FHIR IPS)
+6. **User Interface**: Display file list with download/view options
+
+**Mapper:** [`HealthLinkMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/HealthLinkMapper.kt)
+**Verifier:** [`VhlVerifier`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/VhlVerifier.kt)
 
 ## Data Flow and Transformation
 
