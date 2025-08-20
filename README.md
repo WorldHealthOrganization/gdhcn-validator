@@ -25,6 +25,7 @@ anywhere. Our goal is to make a Verifier App with the widest possible verificati
 ### Project Documentation
 - [**Data Models**](docs/data-models.md) - Comprehensive documentation of all supported certificate data models (DDCC, DCC, DIVOC, SHC, ICAO, ICVP)
 - [**User Workflows**](docs/user-workflows.md) - User experience and technical workflow documentation
+- [**Deployment Guide**](docs/deployment.md) - Complete guide for preview branch and production deployments
 - [**Adding New Schemas**](NEW_SCHEMAS.md) - Guide for adding support for new certificate formats
 
 ### Reference Documentation
@@ -145,6 +146,10 @@ Android will connect with your local IP. Just make sure the phone is in the same
 
 ## How to Deploy
 
+> **📖 For comprehensive deployment documentation, see the [Deployment Guide](docs/deployment.md)**
+
+### Quick Start - Production Release
+
 1. Generate a new signing key 
 ```
 keytool -genkey -v -keystore <my-release-key.keystore> -alias <alias_name> -keyalg RSA -keysize 2048 -validity 10000
@@ -159,7 +164,17 @@ keytool -genkey -v -keystore <my-release-key.keystore> -alias <alias_name> -keya
 5. Tag the commit with `v{x.x.x}`
 6. Let the [Create Release GitHub Action](https://github.com/WorldHealthOrganization/gdhcn-validator/actions/workflows/create-release.yml) build a new `aab` file. 
 7. Add your CHANGE LOG to the description of the new release
-8. Download the `aab` file and upload it to the` PlayStore. 
+8. Download the `aab` file and upload it to the PlayStore.
+
+### Preview Branch Deployment
+
+For testing changes before production:
+
+- **Pull Requests**: Automatic preview deployment with artifacts and optional live preview
+- **Feature Branches**: Push to `preview/*` or `feature/*` branches for manual deployment
+- **Main Branch**: Automatic staging deployment on every push to main
+
+See the [Deployment Guide](docs/deployment.md) for detailed instructions on preview deployments, configuration options, and troubleshooting. 
 
 # Contributing
 
