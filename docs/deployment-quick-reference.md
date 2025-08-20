@@ -39,11 +39,41 @@ git push origin main && git push origin v1.2.3
 
 ## Quick Setup
 
+## Quick Setup
+
 ### For Heroku Review Apps
-1. Create Heroku app: `heroku create your-app-name`
-2. Enable Review Apps in Heroku Dashboard
-3. Set GitHub variable: `HEROKU_APP_NAME=your-app-name`
-4. Add secrets: `HEROKU_API_KEY`, `HEROKU_EMAIL`
+1. **Heroku Setup**:
+   ```bash
+   heroku create your-app-name
+   heroku buildpacks:set heroku/java
+   ```
+2. **Enable Review Apps**: Go to Heroku Dashboard → Deploy → Enable Review Apps
+3. **GitHub Secrets** (Settings → Secrets and variables → Actions → Secrets):
+   - `HEROKU_API_KEY` = `heroku auth:token` output
+   - `HEROKU_EMAIL` = your Heroku account email
+4. **GitHub Variables** (Settings → Secrets and variables → Actions → Variables):
+   - `HEROKU_APP_NAME` = `your-app-name` (base name only)
+
+### GitHub Configuration (Detailed)
+```bash
+# Get required info
+heroku auth:token    # Copy this for HEROKU_API_KEY
+heroku auth:whoami   # Copy this for HEROKU_EMAIL
+
+# Repository Settings → Secrets and variables → Actions
+# Add Secrets:
+#   HEROKU_API_KEY = <token from above>
+#   HEROKU_EMAIL = <email from above>
+# Add Variables:
+#   HEROKU_APP_NAME = your-app-name
+```
+
+### Alternative: GitHub CLI Setup
+```bash
+gh secret set HEROKU_API_KEY --body "your-api-key"
+gh secret set HEROKU_EMAIL --body "your-email@example.com"
+gh variable set HEROKU_APP_NAME --body "your-app-name"
+```
 
 ### Essential Heroku Commands
 ```bash

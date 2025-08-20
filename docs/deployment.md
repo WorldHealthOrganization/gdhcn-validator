@@ -10,6 +10,8 @@ This document provides comprehensive guidance for deploying the GDHCN Validator 
 - [Main Branch Deployment](#main-branch-deployment)
 - [Production Release Deployment](#production-release-deployment)
 - [Configuration](#configuration)
+  - [Heroku Deployment Setup](#heroku-deployment-setup)
+  - [GitHub Repository Configuration](#step-6-configure-github-repository)
 - [Troubleshooting](#troubleshooting)
 
 ## Overview
@@ -315,28 +317,198 @@ Review Apps automatically create temporary apps for each pull request, allowing 
 
 #### Step 6: Configure GitHub Repository
 
-##### 6.1: Add GitHub Secrets
+This step configures the GitHub repository with the necessary secrets and variables for automated Heroku deployments. You need repository admin access to complete these steps.
 
-Go to your GitHub repository settings → Secrets and variables → Actions → Secrets:
+##### 6.1: Get Required Information
+
+Before configuring GitHub, gather the required information:
 
 ```bash
-# Get your Heroku API key
+# Get your Heroku API key (save this for later)
 heroku auth:token
+
+# Get your Heroku email (usually your login email)
+heroku auth:whoami
+
+# Confirm your app name
+heroku apps:info your-app-name | grep "Web URL"
 ```
 
-Add these secrets:
-- **Name**: `HEROKU_API_KEY`
-- **Value**: `your-heroku-api-key-from-above-command`
+**Important**: Keep your API key secure and never share it publicly.
 
-- **Name**: `HEROKU_EMAIL`  
-- **Value**: `your-heroku-account-email@example.com`
+##### 6.2: Add GitHub Secrets (Step-by-Step)
 
-##### 6.2: Add GitHub Variables
+Secrets store sensitive information like API keys and passwords that should not be visible in your repository.
 
-Go to your GitHub repository settings → Secrets and variables → Actions → Variables:
+**Step 1: Navigate to Repository Settings**
+1. Go to your GitHub repository: `https://github.com/WorldHealthOrganization/gdhcn-validator`
+2. Click the **"Settings"** tab (you need admin access)
+3. In the left sidebar, scroll down to the **"Security"** section
+4. Click **"Secrets and variables"**
+5. Click **"Actions"** from the dropdown
 
-- **Name**: `HEROKU_APP_NAME`
-- **Value**: `your-app-name` (the base app name without any suffixes)
+**Step 2: Add HEROKU_API_KEY Secret**
+1. Click the **"Secrets"** tab (should be selected by default)
+2. Click the **"New repository secret"** button
+3. In the **"Name"** field, enter exactly: `HEROKU_API_KEY`
+4. In the **"Secret"** field, paste your Heroku API key from the `heroku auth:token` command
+5. Click **"Add secret"**
+
+**Step 3: Add HEROKU_EMAIL Secret**
+1. Click the **"New repository secret"** button again
+2. In the **"Name"** field, enter exactly: `HEROKU_EMAIL`
+3. In the **"Secret"** field, enter your Heroku account email (from `heroku auth:whoami`)
+4. Click **"Add secret"**
+
+**Step 4: Verify Secrets Were Added**
+After adding both secrets, you should see:
+```
+HEROKU_API_KEY    Updated X seconds ago
+HEROKU_EMAIL      Updated X seconds ago
+```
+
+**Note**: You cannot view secret values after they're saved - this is a security feature.
+
+##### 6.3: Add GitHub Variables (Step-by-Step)
+
+Variables store non-sensitive configuration that can be viewed by repository collaborators.
+
+**Step 1: Switch to Variables Tab**
+1. While still in **Settings → Secrets and variables → Actions**
+2. Click the **"Variables"** tab (next to "Secrets")
+
+**Step 2: Add HEROKU_APP_NAME Variable**
+1. Click the **"New repository variable"** button
+2. In the **"Name"** field, enter exactly: `HEROKU_APP_NAME`
+3. In the **"Value"** field, enter your base Heroku app name (e.g., `gdhcn-validator`)
+   - **Important**: Use only the base name without any suffixes like `-pr-123`
+   - This should match the app name you created in Step 2
+4. Click **"Add variable"**
+
+**Step 3: Add Optional Variables (Recommended)**
+Add these optional variables for enhanced functionality:
+
+1. **PREVIEW_DEPLOY_ENABLED**:
+   - **Name**: `PREVIEW_DEPLOY_ENABLED`
+   - **Value**: `true`
+   - **Purpose**: Enables custom preview deployments
+
+2. **STAGING_DEPLOY_ENABLED**:
+   - **Name**: `STAGING_DEPLOY_ENABLED`
+   - **Value**: `true`
+   - **Purpose**: Enables automatic staging deployments
+
+**Step 4: Verify Variables Were Added**
+After adding variables, you should see:
+```
+HEROKU_APP_NAME           gdhcn-validator
+PREVIEW_DEPLOY_ENABLED    true
+STAGING_DEPLOY_ENABLED    true
+```
+
+##### 6.4: Alternative Setup via GitHub CLI
+
+If you prefer command line setup, you can use the GitHub CLI:
+
+```bash
+# Install GitHub CLI (if not already installed)
+# macOS: brew install gh
+# Ubuntu: sudo apt install gh
+# Windows: winget install GitHub.cli
+
+# Login to GitHub CLI
+gh auth login
+
+# Add secrets
+gh secret set HEROKU_API_KEY --body "your-heroku-api-key"
+gh secret set HEROKU_EMAIL --body "your-heroku-email@example.com"
+
+# Add variables
+gh variable set HEROKU_APP_NAME --body "gdhcn-validator"
+gh variable set PREVIEW_DEPLOY_ENABLED --body "true"
+gh variable set STAGING_DEPLOY_ENABLED --body "true"
+
+# Verify secrets and variables
+gh secret list
+gh variable list
+```
+
+##### 6.5: Verify Configuration
+
+**Test 1: Check GitHub Actions has access**
+1. Go to **Actions** tab in your repository
+2. Look for any recent workflow runs
+3. Click on a workflow run and check if variables appear in the environment
+
+**Test 2: Create a test deployment**
+```bash
+# Create a test branch to trigger the workflow
+git checkout -b test-github-setup
+echo "# Test GitHub configuration" >> README.md
+git add README.md
+git commit -m "Test: GitHub secrets and variables setup"
+git push origin test-github-setup
+```
+
+Create a pull request for this branch - the workflow should run and you should see:
+- No errors about missing secrets/variables
+- Successful authentication with Heroku
+- Automatic Heroku Review App creation
+
+##### 6.6: Troubleshooting GitHub Configuration
+
+**Issue**: `HEROKU_API_KEY` authentication fails
+```
+Error: Invalid credentials
+```
+**Solutions**:
+1. Regenerate API key: `heroku auth:token`
+2. Verify the key was copied completely (no extra spaces)
+3. Re-add the secret with the new key
+
+**Issue**: Variables not accessible in workflow
+```
+Error: HEROKU_APP_NAME is not set
+```
+**Solutions**:
+1. Verify variable name is exactly `HEROKU_APP_NAME` (case-sensitive)
+2. Check that variable was added to the correct repository
+3. Ensure you have admin access to the repository
+
+**Issue**: Heroku app name conflicts
+```
+Error: App name is already taken
+```
+**Solutions**:
+1. Use a unique app name: `gdhcn-validator-yourorg`
+2. Check your Heroku apps: `heroku apps`
+3. Update `HEROKU_APP_NAME` variable with the correct name
+
+**Issue**: Review Apps not being created
+**Solutions**:
+1. Verify Review Apps are enabled in Heroku Dashboard
+2. Check GitHub-Heroku connection is active
+3. Ensure base app (`HEROKU_APP_NAME`) exists in Heroku
+
+##### 6.7: Security Best Practices
+
+**For Secrets**:
+- Never commit API keys to your repository
+- Rotate API keys regularly (every 90 days recommended)
+- Use least-privilege access for service accounts
+- Monitor secret access in GitHub audit logs
+
+**For Variables**:
+- Don't store sensitive data in variables (use secrets instead)
+- Use descriptive names for clarity
+- Document variable purposes in your README
+- Keep variable values simple and avoid special characters
+
+**Access Control**:
+- Limit repository admin access to trusted team members
+- Use branch protection rules for production deployments
+- Review GitHub Actions logs regularly for security issues
+- Enable two-factor authentication for all admin accounts
 
 #### Step 7: Test Review Apps
 
