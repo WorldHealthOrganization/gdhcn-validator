@@ -21,6 +21,8 @@ import org.who.gdhcnvalidator.FhirApplication
 import org.who.gdhcnvalidator.QRDecoder
 import org.who.gdhcnvalidator.R
 import org.who.gdhcnvalidator.databinding.FragmentResultBinding
+import org.who.gdhcnvalidator.ipsviewer.IpsViewer
+import org.who.gdhcnvalidator.ipsviewer.AlertLevel
 import org.who.gdhcnvalidator.services.DDCCFormatter
 import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.verify.hcert.healthlink.VhlVerifier
@@ -464,35 +466,311 @@ class ResultFragment : Fragment() {
     }
     
     /**
-     * Shows FHIR IPS content in a dialog with structured information
+     * Shows FHIR IPS content in a dialog with structured information using the IPS library
      */
     private fun showFhirIpsDialog(file: VhlVerifier.VhlFileInfo) {
         val ipsBundle = file.content as? org.hl7.fhir.r4.model.Bundle
         
-        val message = if (ipsBundle != null) {
-            buildIpsDisplayText(ipsBundle)
-        } else {
-            "FHIR IPS Document\n\nContent is not available for display."
+        if (ipsBundle == null) {
+            AlertDialog.Builder(requireContext())
+                .setTitle(file.title)
+                .setMessage("FHIR IPS Document\n\nContent is not available for display.")
+                .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+                .show()
+            return
         }
+
+        try {
+            val ipsViewer = IpsViewer()
+            
+            // Check if it's a valid IPS bundle
+            if (!ipsViewer.isValidIpsBundle(ipsBundle)) {
+                showBasicBundleInfo(file, ipsBundle)
+                return
+            }
+            
+            // Process the IPS document
+            val processedIps = ipsViewer.processIpsBundle(ipsBundle)
+            
+            // Create a custom dialog with structured content
+            showStructuredIpsDialog(file, processedIps)
+            
+        } catch (e: Exception) {
+            // Fallback to basic display if IPS processing fails
+            showBasicBundleInfo(file, ipsBundle)
+        }
+    }
+
+    /**
+     * Shows a structured IPS dialog with rich content
+     */
+    private fun showStructuredIpsDialog(file: VhlVerifier.VhlFileInfo, processedIps: org.who.gdhcnvalidator.ipsviewer.ProcessedIpsDocument) {
+        val context = requireContext()
+        
+        // Create a scrollable view for the content
+        val scrollView = ScrollView(context)
+        val container = LinearLayout(context)
+        container.orientation = LinearLayout.VERTICAL
+        container.setPadding(24, 16, 24, 16)
+        
+        // Patient header
+        addPatientHeader(container, processedIps.patient)
+        
+        // Clinical alerts
+        if (processedIps.alerts.isNotEmpty()) {
+            addClinicalAlerts(container, processedIps.alerts)
+        }
+        
+        // Document sections
+        addDocumentSections(container, processedIps.sections)
+        
+        // Document summary
+        addDocumentSummary(container, processedIps.summary, processedIps.metadata)
+        
+        scrollView.addView(container)
+        
+        AlertDialog.Builder(context)
+            .setTitle(file.title)
+            .setView(scrollView)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .setNeutralButton("Details") { _, _ ->
+                // Show detailed text view
+                showDetailedIpsText(file, processedIps)
+            }
+            .show()
+    }
+
+    /**
+     * Shows detailed text representation of the IPS
+     */
+    private fun showDetailedIpsText(file: VhlVerifier.VhlFileInfo, processedIps: org.who.gdhcnvalidator.ipsviewer.ProcessedIpsDocument) {
+        val ipsViewer = IpsViewer()
+        val ipsBundle = file.content as org.hl7.fhir.r4.model.Bundle
+        val detailedText = ipsViewer.formatIpsAsText(ipsBundle)
+        
+        val scrollView = ScrollView(requireContext())
+        val textView = TextView(requireContext())
+        textView.text = detailedText
+        textView.setTextIsSelectable(true)
+        textView.typeface = android.graphics.Typeface.MONOSPACE
+        textView.textSize = 12f
+        textView.setPadding(16, 16, 16, 16)
+        scrollView.addView(textView)
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("${file.title} - Details")
+            .setView(scrollView)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    private fun addPatientHeader(container: LinearLayout, patient: org.who.gdhcnvalidator.ipsviewer.ProcessedPatientInfo) {
+        val context = container.context
+        
+        // Patient name
+        val nameView = TextView(context)
+        nameView.text = patient.displayName
+        nameView.textSize = 18f
+        nameView.setTypeface(null, android.graphics.Typeface.BOLD)
+        nameView.setTextColor(context.getColor(android.R.color.black))
+        container.addView(nameView)
+        
+        // Patient details
+        val detailsLayout = LinearLayout(context)
+        detailsLayout.orientation = LinearLayout.HORIZONTAL
+        
+        val details = mutableListOf<String>()
+        if (patient.ageInfo != null) details.add(patient.ageInfo)
+        if (patient.gender != null) details.add(patient.gender)
+        
+        if (details.isNotEmpty()) {
+            val detailsView = TextView(context)
+            detailsView.text = details.joinToString(" • ")
+            detailsView.textSize = 14f
+            detailsView.setTextColor(context.getColor(android.R.color.darker_gray))
+            container.addView(detailsView)
+        }
+        
+        // Identifier
+        if (patient.primaryIdentifier != null) {
+            val idView = TextView(context)
+            val idType = patient.primaryIdentifier.type ?: "ID"
+            idView.text = "$idType: ${patient.primaryIdentifier.value}"
+            idView.textSize = 12f
+            idView.setTextColor(context.getColor(android.R.color.darker_gray))
+            container.addView(idView)
+        }
+        
+        // Add separator
+        addSeparator(container)
+    }
+
+    private fun addClinicalAlerts(container: LinearLayout, alerts: List<org.who.gdhcnvalidator.ipsviewer.ClinicalAlert>) {
+        val context = container.context
+        
+        val alertHeader = TextView(context)
+        alertHeader.text = "Clinical Alerts"
+        alertHeader.textSize = 16f
+        alertHeader.setTypeface(null, android.graphics.Typeface.BOLD)
+        container.addView(alertHeader)
+        
+        alerts.forEach { alert ->
+            val alertLayout = LinearLayout(context)
+            alertLayout.orientation = LinearLayout.HORIZONTAL
+            alertLayout.setPadding(0, 8, 0, 8)
+            
+            // Alert icon
+            val iconView = TextView(context)
+            iconView.text = when (alert.level) {
+                AlertLevel.HIGH -> "🚨"
+                AlertLevel.MEDIUM -> "⚠️"
+                AlertLevel.LOW -> "ℹ️"
+            }
+            iconView.textSize = 16f
+            iconView.setPadding(0, 0, 8, 0)
+            alertLayout.addView(iconView)
+            
+            // Alert content
+            val alertContent = LinearLayout(context)
+            alertContent.orientation = LinearLayout.VERTICAL
+            alertContent.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            
+            val titleView = TextView(context)
+            titleView.text = alert.title
+            titleView.textSize = 14f
+            titleView.setTypeface(null, android.graphics.Typeface.BOLD)
+            alertContent.addView(titleView)
+            
+            val messageView = TextView(context)
+            messageView.text = alert.message
+            messageView.textSize = 12f
+            alertContent.addView(messageView)
+            
+            alertLayout.addView(alertContent)
+            container.addView(alertLayout)
+        }
+        
+        addSeparator(container)
+    }
+
+    private fun addDocumentSections(container: LinearLayout, sections: List<org.who.gdhcnvalidator.ipsviewer.IpsSection>) {
+        val context = container.context
+        
+        if (sections.isNotEmpty()) {
+            val sectionHeader = TextView(context)
+            sectionHeader.text = "Document Contents"
+            sectionHeader.textSize = 16f
+            sectionHeader.setTypeface(null, android.graphics.Typeface.BOLD)
+            container.addView(sectionHeader)
+            
+            sections.forEach { section ->
+                val sectionLayout = LinearLayout(context)
+                sectionLayout.orientation = LinearLayout.HORIZONTAL
+                sectionLayout.setPadding(0, 4, 0, 4)
+                
+                val bullet = TextView(context)
+                bullet.text = "•"
+                bullet.textSize = 14f
+                bullet.setPadding(0, 0, 8, 0)
+                sectionLayout.addView(bullet)
+                
+                val sectionText = TextView(context)
+                sectionText.text = "${section.title}: ${section.text}"
+                sectionText.textSize = 14f
+                sectionText.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                sectionLayout.addView(sectionText)
+                
+                container.addView(sectionLayout)
+            }
+            
+            addSeparator(container)
+        }
+    }
+
+    private fun addDocumentSummary(
+        container: LinearLayout, 
+        summary: org.who.gdhcnvalidator.ipsviewer.DocumentSummary,
+        metadata: org.who.gdhcnvalidator.ipsviewer.IpsMetadata
+    ) {
+        val context = container.context
+        
+        val summaryHeader = TextView(context)
+        summaryHeader.text = "Document Information"
+        summaryHeader.textSize = 16f
+        summaryHeader.setTypeface(null, android.graphics.Typeface.BOLD)
+        container.addView(summaryHeader)
+        
+        if (summary.totalClinicalItems > 0) {
+            addInfoItem(container, "Clinical Items", summary.totalClinicalItems.toString())
+        }
+        
+        if (summary.lastUpdated != null) {
+            addInfoItem(container, "Last Updated", summary.lastUpdated)
+        }
+        
+        if (summary.author != null) {
+            addInfoItem(container, "Author", summary.author)
+        }
+        
+        addInfoItem(container, "Document Type", metadata.documentType)
+        addInfoItem(container, "FHIR Version", metadata.fhirVersion)
+        addInfoItem(container, "Total Resources", metadata.totalResources.toString())
+    }
+
+    private fun addInfoItem(container: LinearLayout, label: String, value: String) {
+        val context = container.context
+        val layout = LinearLayout(context)
+        layout.orientation = LinearLayout.HORIZONTAL
+        layout.setPadding(0, 2, 0, 2)
+        
+        val labelView = TextView(context)
+        labelView.text = "$label:"
+        labelView.textSize = 12f
+        labelView.setTypeface(null, android.graphics.Typeface.BOLD)
+        labelView.setPadding(0, 0, 8, 0)
+        layout.addView(labelView)
+        
+        val valueView = TextView(context)
+        valueView.text = value
+        valueView.textSize = 12f
+        valueView.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        layout.addView(valueView)
+        
+        container.addView(layout)
+    }
+
+    private fun addSeparator(container: LinearLayout) {
+        val context = container.context
+        val separator = View(context)
+        separator.setBackgroundColor(context.getColor(android.R.color.darker_gray))
+        val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
+        params.setMargins(0, 16, 0, 16)
+        separator.layoutParams = params
+        container.addView(separator)
+    }
+
+    /**
+     * Fallback method for non-IPS bundles or when IPS processing fails
+     */
+    private fun showBasicBundleInfo(file: VhlVerifier.VhlFileInfo, bundle: org.hl7.fhir.r4.model.Bundle) {
+        val message = buildBasicBundleText(bundle)
         
         AlertDialog.Builder(requireContext())
             .setTitle(file.title)
             .setMessage(message)
-            .setPositiveButton("OK") { dialog, _ ->
-                dialog.dismiss()
-            }
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
             .show()
     }
     
     /**
-     * Builds a human-readable text representation of IPS Bundle content
+     * Builds basic text representation for non-IPS FHIR bundles
      */
-    private fun buildIpsDisplayText(ipsBundle: org.hl7.fhir.r4.model.Bundle): String {
+    private fun buildBasicBundleText(bundle: org.hl7.fhir.r4.model.Bundle): String {
         val builder = StringBuilder()
-        builder.append("FHIR International Patient Summary\n\n")
+        builder.append("FHIR Bundle Document\n\n")
         
-        // Extract patient information
-        val patient = ipsBundle.entry?.find { 
+        // Extract patient information if available
+        val patient = bundle.entry?.find { 
             it.resource is org.hl7.fhir.r4.model.Patient 
         }?.resource as? org.hl7.fhir.r4.model.Patient
         
@@ -519,30 +797,19 @@ class ResultFragment : Fragment() {
             builder.append("\n")
         }
         
-        // Count other resources
-        val resourceCounts = ipsBundle.entry?.groupBy { 
+        // Count resources
+        val resourceCounts = bundle.entry?.groupBy { 
             it.resource?.fhirType() 
         }?.mapValues { it.value.size }
         
         if (resourceCounts != null && resourceCounts.isNotEmpty()) {
-            builder.append("Document Contents:\n")
+            builder.append("Bundle Contents:\n")
             resourceCounts.forEach { (type, count) ->
-                when (type) {
-                    "Composition" -> builder.append("• Document Structure: $count entry\n")
-                    "Patient" -> {} // Already handled above
-                    "Medication", "MedicationStatement" -> builder.append("• Medications: $count entries\n")
-                    "AllergyIntolerance" -> builder.append("• Allergies: $count entries\n")
-                    "Condition" -> builder.append("• Conditions: $count entries\n")
-                    "Immunization" -> builder.append("• Immunizations: $count entries\n")
-                    "Procedure" -> builder.append("• Procedures: $count entries\n")
-                    "DiagnosticReport" -> builder.append("• Lab Results: $count entries\n")
-                    "Observation" -> builder.append("• Observations: $count entries\n")
-                    else -> builder.append("• $type: $count entries\n")
-                }
+                builder.append("• $type: $count entries\n")
             }
         }
         
-        builder.append("\nThis is a structured health summary document following international standards.")
+        builder.append("\nThis document contains structured health information in FHIR format.")
         
         return builder.toString()
     }
