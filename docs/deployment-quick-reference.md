@@ -39,9 +39,14 @@ git push origin main && git push origin v1.2.3
 
 ## Quick Setup
 
-## Quick Setup
+### Choose Your Deployment Method
 
-### For Heroku Review Apps
+**Option 1: Web-Based Setup (No CLI required)**
+1. **Heroku**: Create app via [dashboard.heroku.com](https://dashboard.heroku.com) → Connect GitHub repository
+2. **Review Apps**: Enable via Dashboard → Deploy tab → Review Apps section  
+3. **GitHub**: Add secrets/variables via Settings → Secrets and variables → Actions
+
+**Option 2: CLI-Based Setup**
 1. **Heroku Setup**:
    ```bash
    heroku create your-app-name

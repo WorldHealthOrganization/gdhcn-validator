@@ -218,16 +218,161 @@ HEROKU_EMAIL=your_heroku_email
 
 ### Heroku Deployment Setup
 
-This section provides complete step-by-step instructions for deploying the GDHCN Validator web application to Heroku, including both manual deployment and automated Review Apps for pull requests.
+This section provides complete step-by-step instructions for deploying the GDHCN Validator web application to Heroku. You can choose between **CLI-based deployment** or **web-based deployment** depending on your preference.
 
 #### Prerequisites
 
 1. **Heroku Account**: Create a free account at [heroku.com](https://heroku.com)
-2. **Heroku CLI**: Install from [devcenter.heroku.com/articles/heroku-cli](https://devcenter.heroku.com/articles/heroku-cli)
-3. **Git**: Required for deployment
-4. **GitHub Repository Access**: Admin access to configure secrets and variables
+2. **GitHub Repository Access**: Admin access to configure secrets and variables
+3. **Git**: Required for CLI deployment method
+4. **Heroku CLI**: Only required for CLI deployment method - install from [devcenter.heroku.com/articles/heroku-cli](https://devcenter.heroku.com/articles/heroku-cli)
 
-#### Step 1: Install and Setup Heroku CLI
+#### Deployment Methods
+
+Choose one of the following deployment methods:
+- **[Method A: Web-Based Deployment](#method-a-web-based-deployment)** - Using Heroku Dashboard (no CLI required)
+- **[Method B: CLI-Based Deployment](#method-b-cli-based-deployment)** - Using Heroku CLI and command line
+
+---
+
+## Method A: Web-Based Deployment
+
+This method uses the Heroku Dashboard web interface exclusively - no command line tools required.
+
+### Step 1: Create Heroku Application via Dashboard
+
+1. **Sign in to Heroku**:
+   - Go to [dashboard.heroku.com](https://dashboard.heroku.com)
+   - Log in with your Heroku account
+
+2. **Create a new app**:
+   - Click the **"New"** button in the top-right corner
+   - Select **"Create new app"**
+   - Enter an **App name** (e.g., `gdhcn-validator` or `your-app-name`)
+     - App names must be unique across all Heroku apps
+     - Use lowercase letters, numbers, and hyphens only
+   - Choose a **Region** (United States or Europe)
+   - Click **"Create app"**
+
+3. **Verify app creation**:
+   - You'll be redirected to your app's dashboard
+   - Note the app URL: `https://your-app-name.herokuapp.com`
+   - The app is now created but not yet deployed
+
+### Step 2: Connect GitHub Repository
+
+1. **Navigate to Deploy tab**:
+   - In your app dashboard, click the **"Deploy"** tab
+
+2. **Connect to GitHub**:
+   - In the **"Deployment method"** section, click **"GitHub"**
+   - Click **"Connect to GitHub"** button
+   - If prompted, authorize Heroku to access your GitHub account
+
+3. **Select repository**:
+   - In the **"Connect to GitHub"** section:
+     - **Repo-owner**: Select `WorldHealthOrganization`
+     - **Repo-name**: Enter `gdhcn-validator`
+     - Click **"Search"**
+     - Click **"Connect"** next to the repository
+
+4. **Configure deployment settings**:
+   - **Manual deploy** section: Choose `main` branch
+   - **Automatic deploys** section: 
+     - Choose `main` branch
+     - Check **"Wait for CI to pass before deploy"** (recommended)
+     - Click **"Enable Automatic Deploys"** (optional - for automatic deployment on every push to main)
+
+### Step 3: Configure Application Settings
+
+1. **Set Java buildpack**:
+   - Click the **"Settings"** tab
+   - Scroll down to **"Buildpacks"** section
+   - Click **"Add buildpack"**
+   - Select **"heroku/java"** or enter `heroku/java`
+   - Click **"Save changes"**
+
+2. **Configure environment variables**:
+   - In the **"Config Vars"** section, click **"Reveal Config Vars"**
+   - Add the following variables one by one:
+
+   **Variable 1:**
+   - **KEY**: `JAVA_TOOL_OPTIONS`
+   - **VALUE**: `-Xmx512m`
+   - Click **"Add"**
+
+   **Variable 2:**
+   - **KEY**: `SPRING_PROFILES_ACTIVE`
+   - **VALUE**: `production`
+   - Click **"Add"**
+
+   **Variable 3 (automatically set):**
+   - **KEY**: `PORT`
+   - **VALUE**: (automatically managed by Heroku)
+   - This should appear automatically - don't modify it
+
+### Step 4: Deploy Application
+
+1. **Manual deployment**:
+   - Go back to the **"Deploy"** tab
+   - Scroll down to **"Manual deploy"** section
+   - Ensure `main` branch is selected
+   - Click **"Deploy Branch"**
+
+2. **Monitor deployment**:
+   - The deployment process will start and show real-time logs
+   - Wait for the message: **"Your app was successfully deployed"**
+   - This process may take 5-10 minutes for the first deployment
+
+3. **Verify deployment**:
+   - Click **"View"** button to open your deployed application
+   - The app should load at `https://your-app-name.herokuapp.com`
+
+### Step 5: Enable Review Apps for Pull Requests
+
+Review Apps create temporary applications for each pull request automatically.
+
+1. **Enable Review Apps**:
+   - In your app dashboard, go to the **"Deploy"** tab
+   - Scroll down to **"Review Apps"** section
+   - Click **"Enable Review Apps..."**
+
+2. **Configure Review Apps settings**:
+   - **Create new review apps for pull requests automatically**: ✅ Check this
+   - **Destroy stale review apps automatically**: ✅ Check this (recommended)
+   - **Stale time**: Set to `5` days (recommended)
+   - Click **"Enable Review Apps"**
+
+3. **Configure inherited settings**:
+   - **Config vars**: All variables from parent app will be copied
+   - **Add-ons**: Select any add-ons to inherit (usually none needed)
+   - **Buildpacks**: Will inherit the Java buildpack automatically
+   - Click **"Create"** if any additional confirmation is needed
+
+### Step 6: Get API Credentials for GitHub Actions
+
+To enable GitHub Actions to deploy to Heroku, you need to get your API credentials:
+
+1. **Get Heroku API Key**:
+   - In Heroku Dashboard, click your avatar (top-right)
+   - Select **"Account settings"**
+   - Scroll down to **"API Key"** section
+   - Click **"Reveal"** to show your API key
+   - **Copy this key** - you'll need it for GitHub configuration
+
+2. **Note your email**:
+   - Your Heroku email is displayed at the top of the Account settings page
+   - **Copy this email** - you'll need it for GitHub configuration
+
+3. **Proceed to GitHub Configuration**: Continue to [Step 7: Configure GitHub Repository](#step-7-configure-github-repository)
+
+---
+
+## Method B: CLI-Based Deployment
+
+This method uses the Heroku CLI for setup and deployment.
+
+### Step 1: Install and Setup Heroku CLI
 
 ```bash
 # Install Heroku CLI (macOS)
@@ -243,7 +388,7 @@ curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 heroku login
 ```
 
-#### Step 2: Create Main Heroku Application
+### Step 2: Create Main Heroku Application
 
 ```bash
 # Create the main application
@@ -259,7 +404,7 @@ heroku config:set JAVA_TOOL_OPTIONS="-Xmx512m" --app your-app-name
 heroku apps:info your-app-name
 ```
 
-#### Step 3: Configure Heroku Application
+### Step 3: Configure Heroku Application
 
 ```bash
 # Set up Java buildpack (if not automatically detected)
@@ -272,7 +417,7 @@ heroku config:set SPRING_PROFILES_ACTIVE=production --app your-app-name
 heroku config --app your-app-name
 ```
 
-#### Step 4: Manual Deployment (One-time)
+### Step 4: Manual Deployment (One-time)
 
 ```bash
 # Clone and deploy the repository manually
@@ -292,7 +437,7 @@ heroku logs --tail --app your-app-name
 heroku open --app your-app-name
 ```
 
-#### Step 5: Enable Review Apps for Pull Requests
+### Step 5: Enable Review Apps for Pull Requests
 
 Review Apps automatically create temporary apps for each pull request, allowing you to test changes before merging.
 
@@ -315,13 +460,9 @@ Review Apps automatically create temporary apps for each pull request, allowing 
 4. Click **"Connect"**
 5. **Do not** enable automatic deploys for main branch (we use GitHub Actions instead)
 
-#### Step 6: Configure GitHub Repository
+### Step 6: Get API Credentials for GitHub Actions
 
-This step configures the GitHub repository with the necessary secrets and variables for automated Heroku deployments. You need repository admin access to complete these steps.
-
-##### 6.1: Get Required Information
-
-Before configuring GitHub, gather the required information:
+To enable GitHub Actions integration, get your API credentials:
 
 ```bash
 # Get your Heroku API key (save this for later)
@@ -336,7 +477,37 @@ heroku apps:info your-app-name | grep "Web URL"
 
 **Important**: Keep your API key secure and never share it publicly.
 
-##### 6.2: Add GitHub Secrets (Step-by-Step)
+---
+
+## Step 7: Configure GitHub Repository
+
+**This step is the same for both deployment methods** - it configures GitHub Actions integration regardless of whether you used the web interface or CLI to create your Heroku app.
+
+This step configures the GitHub repository with the necessary secrets and variables for automated Heroku deployments. You need repository admin access to complete these steps.
+
+#### 7.1: Get Required Information
+
+Before configuring GitHub, gather the required information:
+
+**If you used Method A (Web-based deployment)**:
+- Use the API key you copied from Heroku Dashboard → Account settings
+- Use the email from your Heroku account settings
+
+**If you used Method B (CLI-based deployment)**:
+```bash
+# Get your Heroku API key (save this for later)
+heroku auth:token
+
+# Get your Heroku email (usually your login email)
+heroku auth:whoami
+
+# Confirm your app name
+heroku apps:info your-app-name | grep "Web URL"
+```
+
+**Important**: Keep your API key secure and never share it publicly.
+
+#### 7.2: Add GitHub Secrets (Step-by-Step)
 
 Secrets store sensitive information like API keys and passwords that should not be visible in your repository.
 
@@ -369,7 +540,7 @@ HEROKU_EMAIL      Updated X seconds ago
 
 **Note**: You cannot view secret values after they're saved - this is a security feature.
 
-##### 6.3: Add GitHub Variables (Step-by-Step)
+#### 7.3: Add GitHub Variables (Step-by-Step)
 
 Variables store non-sensitive configuration that can be viewed by repository collaborators.
 
@@ -406,7 +577,7 @@ PREVIEW_DEPLOY_ENABLED    true
 STAGING_DEPLOY_ENABLED    true
 ```
 
-##### 6.4: Alternative Setup via GitHub CLI
+#### 7.4: Alternative Setup via GitHub CLI
 
 If you prefer command line setup, you can use the GitHub CLI:
 
@@ -433,7 +604,7 @@ gh secret list
 gh variable list
 ```
 
-##### 6.5: Verify Configuration
+#### 7.5: Verify Configuration
 
 **Test 1: Check GitHub Actions has access**
 1. Go to **Actions** tab in your repository
@@ -510,14 +681,18 @@ Error: App name is already taken
 - Review GitHub Actions logs regularly for security issues
 - Enable two-factor authentication for all admin accounts
 
-#### Step 7: Test Review Apps
+## Step 8: Test Review Apps
+
+Now test that your complete setup is working by creating a test deployment.
+
+### Method A & B: Testing Review Apps
 
 1. **Create a test pull request**:
    ```bash
    git checkout -b test-heroku-deployment
-   echo "# Test deployment" >> README.md
+   echo "# Test deployment - $(date)" >> README.md
    git add README.md
-   git commit -m "Test: Heroku deployment"
+   git commit -m "Test: Heroku deployment setup"
    git push origin test-heroku-deployment
    ```
 
@@ -532,9 +707,31 @@ Error: App name is already taken
    - A comment should appear on the PR with deployment links
    - A new Heroku app should be created: `your-app-name-pr-123`
 
-#### Step 8: Monitor and Manage Deployments
+4. **Check the Review App**:
+   - **Via Heroku Dashboard**: Go to your main app → Deploy tab → Review Apps section
+   - **Via GitHub**: Look for the workflow comment with the Heroku URL
+   - **Direct URL**: `https://your-app-name-pr-123.herokuapp.com`
 
-##### View Heroku Apps
+## Step 9: Monitor and Manage Deployments
+
+### Via Heroku Dashboard (Both Methods)
+
+1. **View all apps**:
+   - Go to [dashboard.heroku.com](https://dashboard.heroku.com)
+   - All your apps (main and review apps) will be listed
+
+2. **Monitor specific app**:
+   - Click on any app name
+   - **Overview tab**: App status, dyno usage, recent activity
+   - **Activity tab**: Deployment history and build logs
+   - **Logs tab**: Real-time application logs
+   - **Metrics tab**: Performance metrics (if enabled)
+
+3. **View deployment history**:
+   - In any app dashboard, click **"Activity"** tab
+   - See all builds, deployments, and configuration changes
+
+### Via CLI (Method B)
 ```bash
 # List all apps
 heroku apps
@@ -546,7 +743,15 @@ heroku apps:info your-app-name-pr-123
 heroku releases --app your-app-name
 ```
 
-##### Check Application Health
+### Check Application Health
+
+**Via Dashboard**:
+1. Go to your app dashboard
+2. Click **"Logs"** tab for real-time logs
+3. Check **"Metrics"** tab for performance data
+4. Review **"Overview"** tab for dyno status
+
+**Via CLI**:
 ```bash
 # View logs
 heroku logs --tail --app your-app-name
@@ -558,7 +763,18 @@ heroku ps --app your-app-name
 heroku ps:scale web=1 --app your-app-name
 ```
 
-##### Manual Review App Management
+### Manual Review App Management
+
+**Via Dashboard**:
+1. Go to your main app dashboard
+2. Click **"Deploy"** tab
+3. Scroll to **"Review Apps"** section
+4. See all active review apps with options to:
+   - **View**: Open the review app
+   - **Destroy**: Delete the review app manually
+   - **View Activity**: See deployment history
+
+**Via CLI**:
 ```bash
 # Create a review app manually
 heroku review-apps:create --app your-app-name --pr 123
@@ -567,9 +783,26 @@ heroku review-apps:create --app your-app-name --pr 123
 heroku apps:destroy your-app-name-pr-123 --confirm your-app-name-pr-123
 ```
 
-#### Step 9: Production Deployment Configuration
+## Step 10: Production Deployment Configuration
 
-For production deployments, configure additional settings:
+For production deployments, you can configure additional settings using either method:
+
+### Via Heroku Dashboard
+
+1. **Go to your main app** → **Settings** tab
+2. **Config Vars section** → **Reveal Config Vars**
+3. **Add production variables**:
+   - `NODE_ENV` = `production`
+   - `SPRING_PROFILES_ACTIVE` = `production`
+4. **SSL Configuration**:
+   - Go to **Settings** tab → **Domains and certificates**
+   - SSL is automatically enabled on paid plans
+5. **Custom Domain** (optional):
+   - In **Domains and certificates** section
+   - Click **"Add domain"**
+   - Enter your custom domain
+
+### Via CLI
 
 ```bash
 # Set production environment
