@@ -16,7 +16,7 @@ buildscript {
 }
 
 tasks.register('clean', Delete) {
-    delete rootProject.buildDir
+    delete layout.buildDirectory.get().asFile
 }
 
 tasks.register('stage') { dependsOn[':web:stage'] }
