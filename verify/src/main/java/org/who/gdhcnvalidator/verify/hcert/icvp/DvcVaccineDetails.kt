@@ -75,4 +75,20 @@ open class DvcVaccineDetails (
         }
         return value
     }
+    
+    /**
+     * Validates ICVP constraints for vaccine details
+     */
+    open fun validateIcvpConstraints(): List<String> {
+        val errors = mutableListOf<String>()
+        
+        // Validate must-have-issuer-or-clinician-name invariant
+        if (!IcvpValidation.validateIssuerOrClinicanName(
+            issuer?.reference?.let { StringType(it) }, 
+            clinicianName)) {
+            errors.add("Either issuer or clinicianName must be present")
+        }
+        
+        return errors
+    }
 }
