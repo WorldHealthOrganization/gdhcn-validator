@@ -48,8 +48,8 @@ class MainActivity : AuthActivity() {
         // kicks of the loading of Fhir Engine, Operator and Trust Registry
         FhirApplication.initInMemory(applicationContext)
         FhirApplication.trustRegistry(applicationContext)
-        FhirApplication.fhirContext(applicationContext)
-        TODO("FHIR Engine currently leads to app crash on startup")
+// FIXME: FHIR loading currently causes app crash at startup
+//        FhirApplication.fhirContext(applicationContext)
 //        FhirApplication.fhirEngine(applicationContext)
 //        FhirApplication.fhirOperator(applicationContext)
 //        FhirApplication.subscribedIGs(applicationContext)
