@@ -5,14 +5,14 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdkVersion 36
 
-    namespace 'org.who.gdhcnvalidator'
+    namespace = 'org.who.gdhcnvalidator'
 
     defaultConfig {
         applicationId "org.who.gdhcnvalidator"
-        minSdk 26
-        targetSdk 34
+        minSdkVersion 26
+        targetSdkVersion 36
         versionCode 22
         versionName "0.1.0"
 
@@ -35,17 +35,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = '17'
     }
     buildFeatures {
-        viewBinding true
-        buildConfig true
+        viewBinding = true
+        buildConfig = true
     }
     packagingOptions {
         resources {
@@ -67,6 +67,7 @@ android {
         unitTests.includeAndroidResources = true
         unitTests.returnDefaultValues = true
     }
+    buildToolsVersion '36.1.0'
 }
 
 configurations.configureEach {
@@ -117,12 +118,12 @@ configurations.configureEach {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
 
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.7'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.9.6'
     implementation "androidx.cardview:cardview:1.0.0"
 
     // Necessary to open a camera.

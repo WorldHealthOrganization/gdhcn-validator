@@ -15,7 +15,7 @@ dependencies {
     implementation project(":trust")
 
     // Adds BouncyCastle to work with keys.
-    implementation 'org.bouncycastle:bcpkix-jdk15to18:1.81'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
 
     // Adds Multibase/Base 58 support
     implementation 'com.github.multiformats:java-multibase:v1.0.0'

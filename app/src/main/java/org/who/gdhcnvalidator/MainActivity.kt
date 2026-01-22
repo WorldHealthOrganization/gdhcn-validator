@@ -49,9 +49,10 @@ class MainActivity : AuthActivity() {
         FhirApplication.initInMemory(applicationContext)
         FhirApplication.trustRegistry(applicationContext)
         FhirApplication.fhirContext(applicationContext)
-        FhirApplication.fhirEngine(applicationContext)
-        FhirApplication.fhirOperator(applicationContext)
-        FhirApplication.subscribedIGs(applicationContext)
+        TODO("FHIR Engine currently leads to app crash on startup")
+//        FhirApplication.fhirEngine(applicationContext)
+//        FhirApplication.fhirOperator(applicationContext)
+//        FhirApplication.subscribedIGs(applicationContext)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
