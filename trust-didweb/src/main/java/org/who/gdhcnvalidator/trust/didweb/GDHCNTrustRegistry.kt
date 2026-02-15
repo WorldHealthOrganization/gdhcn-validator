@@ -235,8 +235,8 @@ class GDHCNTrustRegistry : TrustRegistry {
         println("GDHCN: Resolving $framework $kid")
         if (kid.contains("#")) {
             val parts = kid.split("#")
-            val encController = URLEncoder.encode(parts[0],"UTF-8")
-            val encKid = URLEncoder.encode(parts[1],"UTF-8")
+            val encController = CountryUtils().getAlpha3Country(parts[0])
+            val encKid = parts[1]
 
             val firstPass = registries.firstNotNullOfOrNull {
                 it.resolve(framework, "$encController#$encKid")
