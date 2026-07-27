@@ -52,19 +52,19 @@ class QRDecoder(private val registry: TrustRegistry) {
         val fileList: List<VhlFileInfo>? = null
     )
 
-    fun decode(qrPayload : String): VerificationResult {
+    fun decode(qrPayload : String, pin: String? = null): VerificationResult {
         // Check for VHL URIs first - only vhlink:/ is supported
         if (qrPayload.startsWith("vhlink:/")) {
-            return processVhlUri(qrPayload)
+            return processVhlUri(qrPayload, pin)
         }
-        
-        // Explicitly reject SHL URIs as not supported per requirements
+
+        // Explicitly reject bare SHL URIs (VHLs must be signed, i.e. HCERT-wrapped)
         if (qrPayload.startsWith("shlink:/")) {
             return VerificationResult(Status.NOT_SUPPORTED, null, null, qrPayload, null)
         }
-        
+
         if (qrPayload.uppercase().startsWith("HC1:")) {
-            return HCertVerifier(registry).unpackAndVerify(qrPayload)
+            return HCertVerifier(registry).unpackAndVerify(qrPayload, pin)
         }
         if (qrPayload.uppercase().startsWith("SHC:")) {
             return ShcVerifier(registry).unpackAndVerify(qrPayload)
@@ -83,18 +83,18 @@ class QRDecoder(private val registry: TrustRegistry) {
      * Process VHL URI and return initial verification result
      * Full VHL processing with PIN entry and manifest fetching happens in the UI layer
      */
-    private fun processVhlUri(qrPayload: String): VerificationResult {
+    private fun processVhlUri(qrPayload: String, pin: String? = null): VerificationResult {
         val vhlVerifier = VhlVerifier()
         val decodedLink = vhlVerifier.decodeVhlUri(qrPayload)
-        
+
         return if (decodedLink != null) {
             val requiresPin = vhlVerifier.isPinRequired(decodedLink)
             val vhlInfo = VhlInfo(
                 decodedLink = decodedLink,
                 requiresPin = requiresPin
             )
-            
-            if (requiresPin) {
+
+            if (requiresPin && pin.isNullOrBlank()) {
                 VerificationResult(
                     status = Status.VHL_REQUIRES_PIN,
                     contents = null,
@@ -104,8 +104,8 @@ class QRDecoder(private val registry: TrustRegistry) {
                     vhlInfo = vhlInfo
                 )
             } else {
-                // Try to fetch manifest without PIN
-                val manifest = vhlVerifier.fetchManifest(VhlVerifier.VhlManifestRequest(decodedLink.url))
+                // Try to fetch manifest (with the PIN when provided)
+                val manifest = vhlVerifier.fetchManifest(VhlVerifier.VhlManifestRequest(decodedLink.url, pin, decodedLink.key))
                 if (manifest != null) {
                     val fileList = vhlVerifier.extractFileList(manifest)
                     VerificationResult(

@@ -8,7 +8,7 @@ class IcvpVaccineDetails (
 
     vaccineClassification: CodeableConcept,
     vaccineTradeItem: StringType?,
-    date: DateTimeType?,
+    date: DateType?,
 
     clinicianName: StringType?,
     issuer: Reference?,
@@ -16,7 +16,7 @@ class IcvpVaccineDetails (
     manufacturerId: Identifier?,
     manufacturer: StringType?,
 
-    batchNo: StringType?,
+    batchNo: CodeableConcept?,
     validityPeriod: Period?,
 ): DvcVaccineDetails(doseNumber, disease, vaccineClassification, vaccineTradeItem, date, clinicianName, issuer, manufacturerId, manufacturer, batchNo, validityPeriod) {
     

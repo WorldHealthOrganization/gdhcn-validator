@@ -67,15 +67,15 @@ class VhlIntegrationTest : BaseTrustRegistryTest() {
     @Test
     fun testSmartHealthLinkModelVhlDetection() {
         // Test VHL detection
-        val vhlModel = SmartHealthLinkModel(StringType("vhlink:/test"))
+        val vhlModel = SmartHealthLinkModel("vhlink:/test")
         assertTrue("Should detect VHL URI", vhlModel.isVHL())
         
-        // Test SHL detection - should NOT be detected as VHL
-        val shlModel = SmartHealthLinkModel(StringType("shlink:/test"))
-        assertFalse("Should NOT detect SHL URI as VHL", shlModel.isVHL())
+        // SHLinks (HCERT-wrapped) are supported health links as well
+        val shlModel = SmartHealthLinkModel("shlink:/test")
+        assertTrue("Should detect SHL URI as a health link", shlModel.isVHL())
         
         // Test non-VHL URI
-        val otherModel = SmartHealthLinkModel(StringType("https://example.com"))
+        val otherModel = SmartHealthLinkModel("https://example.com")
         assertFalse("Should not detect regular URI as VHL", otherModel.isVHL())
         
         // Test null URI
@@ -103,7 +103,7 @@ class VhlIntegrationTest : BaseTrustRegistryTest() {
         pdfDocRef.description = "Vaccination Certificate"
         val pdfAttachment = Attachment()
         pdfAttachment.url = "https://example.com/cert.pdf"
-        pdfAttachment.size = 12345L
+        pdfAttachment.size = 12345
         val pdfContent = DocumentReference.DocumentReferenceContentComponent()
         pdfContent.attachment = pdfAttachment
         pdfDocRef.content = listOf(pdfContent)

@@ -3,6 +3,8 @@ package org.who.gdhcnvalidator.verify.hcert.icvp
 import org.hl7.fhir.r4.model.*
 import org.junit.Test
 import org.junit.Assert.*
+import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DvcHCertVaccination
+import org.who.gdhcnvalidator.verify.hcert.dcc.logical.HCertDVC
 
 /**
  * Tests for updated ICVP logical models to verify FSH compliance
@@ -37,12 +39,12 @@ class IcvpLogicalModelTest {
             disease = Coding(),
             vaccineClassification = CodeableConcept(),
             vaccineTradeItem = StringType("YellowFeverProductd2c75a15ed309658b3968519ddb31690"),
-            date = DateTimeType(),
+            date = DateType(),
             clinicianName = StringType("Dr. Smith"),
             issuer = Reference("Organization/1"),
             manufacturerId = Identifier(),
             manufacturer = StringType("Test Manufacturer"),
-            batchNo = StringType("BATCH123"),
+            batchNo = CodeableConcept().setText("BATCH123"),
             validityPeriod = Period()
         )
         
@@ -103,12 +105,12 @@ class IcvpLogicalModelTest {
             disease = Coding(),
             vaccineClassification = CodeableConcept(),
             vaccineTradeItem = StringType("validProductId"),
-            date = DateTimeType(),
+            date = DateType(),
             clinicianName = StringType("Dr. Smith"), // Has clinician name
             issuer = null, // No issuer
             manufacturerId = Identifier(),
             manufacturer = StringType("Test Manufacturer"),
-            batchNo = StringType("BATCH123"),
+            batchNo = CodeableConcept().setText("BATCH123"),
             validityPeriod = Period()
         )
         
@@ -123,12 +125,12 @@ class IcvpLogicalModelTest {
             disease = Coding(),
             vaccineClassification = CodeableConcept(),
             vaccineTradeItem = StringType(""),
-            date = DateTimeType(),
+            date = DateType(),
             clinicianName = null, // No clinician name
             issuer = null, // No issuer
             manufacturerId = Identifier(),
             manufacturer = StringType("Test Manufacturer"),
-            batchNo = StringType("BATCH123"),
+            batchNo = CodeableConcept().setText("BATCH123"),
             validityPeriod = Period()
         )
         
@@ -149,9 +151,9 @@ class IcvpLogicalModelTest {
             ndt = CodeType("PPN"), // Valid passport document type
             guardian = StringType("Jane Doe"),
             issuer = Reference("Organization/1"),
-            vaccineDetails = DvcVaccineDetails()
+            vaccineDetails = DvcVaccineDetails(clinicianName = StringType("Dr. Smith"))
         )
-        
+
         val errors = model.validateIcvpConstraints()
         assertTrue("Should pass validation with valid ndt", errors.isEmpty())
     }

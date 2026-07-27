@@ -24,7 +24,7 @@ class CountryUtils {
         "xi" to "xxi",
         "xj" to "xxj",
         "xk" to "xxk",
-        "xl" to "xxl",
+        "xl" to "xcl", // LACPass test country: XL maps to XCL on the GDHCN trust lists
         "xm" to "xxm",
         "xn" to "xxn",
         "xo" to "xxo",

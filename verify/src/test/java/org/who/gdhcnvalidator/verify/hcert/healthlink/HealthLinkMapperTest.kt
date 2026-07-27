@@ -11,7 +11,7 @@ class HealthLinkMapperTest {
     @Test
     fun testHealthLinkMapperDoesNotThrowException() {
         val mapper = HealthLinkMapper()
-        val model = SmartHealthLinkModel(StringType("vhlink:/test"))
+        val model = SmartHealthLinkModel("vhlink:/test")
         
         // Should not throw UnsupportedOperationException anymore
         val result = mapper.run(model)
@@ -41,14 +41,14 @@ class HealthLinkMapperTest {
         assertTrue("Should contain 'Unknown URI' in narrative", 
             result.entry?.any { entry ->
                 val composition = entry.resource as? Composition
-                composition?.text?.div?.allText?.contains("Unknown URI") == true
+                composition?.text?.div?.allText()?.contains("Unknown URI") == true
             } ?: false)
     }
     
     @Test
     fun testHealthLinkMapperWithShlUri() {
         val mapper = HealthLinkMapper()
-        val model = SmartHealthLinkModel(StringType("shlink:/example"))
+        val model = SmartHealthLinkModel("shlink:/example")
         
         // Should handle SHL URIs gracefully (legacy case)
         val result = mapper.run(model)
@@ -57,7 +57,7 @@ class HealthLinkMapperTest {
         assertTrue("Should contain the SHL URI in narrative", 
             result.entry?.any { entry ->
                 val composition = entry.resource as? Composition
-                composition?.text?.div?.allText?.contains("shlink:/example") == true
+                composition?.text?.div?.allText()?.contains("shlink:/example") == true
             } ?: false)
     }
 }

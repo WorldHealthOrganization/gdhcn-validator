@@ -27,14 +27,16 @@ class VhlVerifierTest : BaseTrustRegistryTest() {
     fun testDecodeShlUri() {
         val vhlVerifier = VhlVerifier()
         
-        // SHL URIs should not be processed by VHL verifier
-        val testData = """{"url":"https://example.com/shl-manifest"}"""
+        // SHL URIs (as found in HCERT claim 5) are decoded as well
+        val testData = """{"url":"https://example.com/shl-manifest","flag":"P"}"""
         val encodedData = Base64.getUrlEncoder().encodeToString(testData.toByteArray())
-        val shlUri = "shlink:/$encodedData"
-        
+        val shlUri = "shlink://$encodedData"
+
         val result = vhlVerifier.decodeVhlUri(shlUri)
-        
-        assertNull("Should not decode SHL URI (VHL verifier only processes vhlink:/ URIs)", result)
+
+        assertNotNull("Should decode SHL URI", result)
+        assertEquals("Should extract URL", "https://example.com/shl-manifest", result?.url)
+        assertTrue("Should require PIN for P flag", vhlVerifier.isPinRequired(result!!))
     }
     
     @Test

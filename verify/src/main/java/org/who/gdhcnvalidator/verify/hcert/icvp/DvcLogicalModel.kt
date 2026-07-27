@@ -29,12 +29,10 @@ open class DvcLogicalModel(
 ): BaseModel() {
     override fun copy(): Resource? { return DvcLogicalModel(name, dob, sex, nationality, nid, ndt, guardian, issuer, vaccineDetails) }
     override fun getResourceType(): ResourceType? {
-        println("DvcLogicalModel GetResourceType")
         return ResourceType.StructureDefinition
     }
 
     override fun makeProperty(hash: Int, name: String?): Base {
-        println("DvcLogicalModel makeProperty")
         return when (hash) {
             "vaccineDetails".hashCode() -> {
                 val newVac = DvcVaccineDetails()
@@ -78,7 +76,7 @@ open class DvcLogicalModel(
     }
 
     override fun fhirType(): String {
-        return "ModelDVC"
+        return "ICVP"
     }
     
     /**

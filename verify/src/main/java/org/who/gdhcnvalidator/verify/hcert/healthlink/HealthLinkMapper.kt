@@ -31,8 +31,9 @@ class HealthLinkMapper: BaseMapper() {
             // Add the link URI as narrative text
             text = Narrative().apply {
                 status = Narrative.NarrativeStatus.GENERATED
-                div = org.hl7.fhir.utilities.xhtml.XhtmlNode().apply {
-                    addTag("div")
+                div = org.hl7.fhir.utilities.xhtml.XhtmlNode(
+                    org.hl7.fhir.utilities.xhtml.NodeType.Element, "div"
+                ).apply {
                     addTag("p").addText("Legacy health link found in certificate: ${link.getUri() ?: "Unknown URI"}")
                     addTag("p").addText("Modern VHL processing requires vhlink:/ URI format.")
                 }
