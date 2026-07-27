@@ -1,14 +1,16 @@
 package org.who.gdhcnvalidator.views
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.PorterDuff
+import android.net.Uri
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -21,6 +23,7 @@ import org.who.gdhcnvalidator.R
 import org.who.gdhcnvalidator.databinding.FragmentResultBinding
 import org.who.gdhcnvalidator.services.DDCCFormatter
 import org.who.gdhcnvalidator.trust.TrustRegistry
+import org.who.gdhcnvalidator.verify.hcert.healthlink.VhlVerifier
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
@@ -45,6 +48,10 @@ class ResultFragment : Fragment() {
         QRDecoder.Status.REVOKED_KEYS to R.string.verification_status_revoked_keys,
         QRDecoder.Status.INVALID_SIGNATURE to R.string.verification_status_invalid_signature,
         QRDecoder.Status.VERIFIED to R.string.verification_status_verified,
+        // VHL specific statuses (we'll need to add these strings)
+        QRDecoder.Status.VHL_REQUIRES_PIN to R.string.vhl_status_requires_pin,
+        QRDecoder.Status.VHL_INVALID_URI to R.string.vhl_status_invalid_uri,
+        QRDecoder.Status.VHL_FETCH_ERROR to R.string.vhl_status_fetch_error,
     )
 
     override fun onCreateView(
@@ -152,42 +159,51 @@ class ResultFragment : Fragment() {
         if (DDCC.contents != null) {
             binding?.tvResultCard?.visibility = TextView.VISIBLE
 
-            val card = DDCCFormatter().run(DDCC.composition()!!)
+            // Check if this is a VHL result with file list
+            if (DDCC.vhlInfo?.fileList != null) {
+                showVhlFileList(DDCC.vhlInfo.fileList)
+            } else {
+                // Traditional health certificate display
+                val card = DDCCFormatter().run(DDCC.composition()!!)
 
-            // Credential
-            setTextView(binding?.tvResultScanDate, card.cardTitle, binding?.tvResultScanDate)
-            setTextView(binding?.tvResultValidUntil, card.validUntil, binding?.llResultValidUntil)
+                // Credential
+                setTextView(binding?.tvResultScanDate, card.cardTitle, binding?.tvResultScanDate)
+                setTextView(binding?.tvResultValidUntil, card.validUntil, binding?.llResultValidUntil)
 
-            // Patient
-            setTextView(binding?.tvResultName, card.personName, binding?.tvResultName)
-            setTextView(binding?.tvResultPersonDetails, card.personDetails, binding?.tvResultPersonDetails)
-            setTextView(binding?.tvResultIdentifier, card.identifier, binding?.tvResultIdentifier)
+                // Patient
+                setTextView(binding?.tvResultName, card.personName, binding?.tvResultName)
+                setTextView(binding?.tvResultPersonDetails, card.personDetails, binding?.tvResultPersonDetails)
+                setTextView(binding?.tvResultIdentifier, card.identifier, binding?.tvResultIdentifier)
 
-            // Location, Practice, Practitioner
-            setTextView(binding?.tvResultHcid, card.hcid, binding?.llResultHcid)
-            setTextView(binding?.tvResultPha, card.pha, binding?.llResultPha)
-            setTextView(binding?.tvResultHw, card.hw, binding?.llResultHw)
+                // Location, Practice, Practitioner
+                setTextView(binding?.tvResultHcid, card.hcid, binding?.llResultHcid)
+                setTextView(binding?.tvResultPha, card.pha, binding?.llResultPha)
+                setTextView(binding?.tvResultHw, card.hw, binding?.llResultHw)
 
-            // Test Result
-            setTextView(binding?.tvResultTestType, card.testType, binding?.tvResultTestType)
-            setTextView(binding?.tvResultTestTypeDetail, card.testTypeDetail, binding?.llResultTestTypeDetail)
-            setTextView(binding?.tvResultTestDate, card.testDate, binding?.llResultTestDate)
-            setTextView(binding?.tvResultTestTitle, card.testResult, binding?.tvResultTestTitle)
+                // Test Result
+                setTextView(binding?.tvResultTestType, card.testType, binding?.tvResultTestType)
+                setTextView(binding?.tvResultTestTypeDetail, card.testTypeDetail, binding?.llResultTestTypeDetail)
+                setTextView(binding?.tvResultTestDate, card.testDate, binding?.llResultTestDate)
+                setTextView(binding?.tvResultTestTitle, card.testResult, binding?.tvResultTestTitle)
 
-            // Immunization
-            setTextView(binding?.tvResultVaccineType, card.vaccineType, binding?.tvResultVaccineType)
-            setTextView(binding?.tvResultDoseTitle, card.dose, binding?.tvResultDoseTitle)
-            setTextView(binding?.tvResultDoseDate, card.doseDate, binding?.llResultDoseDate)
-            setTextView(binding?.tvResultVaccineValid, card.vaccineValid, binding?.llResultVaccineValid)
-            setTextView(binding?.tvResultVaccineInfo, card.vaccineInfo, binding?.llResultVaccineInfo)
-            setTextView(binding?.tvResultVaccineInfo2, card.vaccineInfo2, binding?.llResultVaccineInfo2)
-            setTextView(binding?.tvResultCentre, card.location, binding?.llResultCentre)
+                // Immunization
+                setTextView(binding?.tvResultVaccineType, card.vaccineType, binding?.tvResultVaccineType)
+                setTextView(binding?.tvResultDoseTitle, card.dose, binding?.tvResultDoseTitle)
+                setTextView(binding?.tvResultDoseDate, card.doseDate, binding?.llResultDoseDate)
+                setTextView(binding?.tvResultVaccineValid, card.vaccineValid, binding?.llResultVaccineValid)
+                setTextView(binding?.tvResultVaccineInfo, card.vaccineInfo, binding?.llResultVaccineInfo)
+                setTextView(binding?.tvResultVaccineInfo2, card.vaccineInfo2, binding?.llResultVaccineInfo2)
+                setTextView(binding?.tvResultCentre, card.location, binding?.llResultCentre)
 
-            // Recommendation
-            setTextView(binding?.tvResultNextDose, card.nextDose, binding?.llResultNextDose)
+                // Recommendation
+                setTextView(binding?.tvResultNextDose, card.nextDose, binding?.llResultNextDose)
 
-            // Status
-            binding?.llResultStatus?.removeAllViews()
+                // Status
+                binding?.llResultStatus?.removeAllViews()
+            }
+        } else if (DDCC.status == QRDecoder.Status.VHL_REQUIRES_PIN) {
+            // Show PIN entry interface
+            showVhlPinEntry(DDCC)
         }
     }
 
@@ -280,6 +296,211 @@ class ResultFragment : Fragment() {
             t.printStackTrace()
             null
         }
+    }
+    
+    /**
+     * Shows PIN entry dialog for VHL
+     */
+    private fun showVhlPinEntry(vhlResult: QRDecoder.VerificationResult) {
+        val input = EditText(requireContext())
+        input.hint = "Enter PIN"
+        input.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("PIN Required")
+            .setMessage("This Verifiable Health Link requires a PIN to access the manifest.")
+            .setView(input)
+            .setPositiveButton("OK") { _, _ ->
+                val pin = input.text.toString()
+                fetchVhlManifestWithPin(vhlResult, pin)
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+            .show()
+    }
+    
+    /**
+     * Fetches VHL manifest with PIN and updates the display
+     */
+    private fun fetchVhlManifestWithPin(vhlResult: QRDecoder.VerificationResult, pin: String) {
+        CoroutineScope(Dispatchers.Main + Job()).launch {
+            val decodedLink = vhlResult.vhlInfo?.decodedLink
+            if (decodedLink != null) {
+                withContext(Dispatchers.IO) {
+                    val vhlVerifier = VhlVerifier()
+                    val request = VhlVerifier.VhlManifestRequest(decodedLink.url, pin)
+                    val manifest = vhlVerifier.fetchManifest(request)
+                    
+                    withContext(Dispatchers.Main) {
+                        if (manifest != null) {
+                            val fileList = vhlVerifier.extractFileList(manifest)
+                            showVhlFileList(fileList)
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to fetch manifest. Check your PIN.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Shows the list of files available in the VHL manifest
+     */
+    private fun showVhlFileList(fileList: List<VhlVerifier.VhlFileInfo>) {
+        // Clear existing content and show file list
+        clearResultFields()
+        
+        // Get the main content container
+        val resultCard = binding?.root?.findViewById<LinearLayout>(R.id.tv_result_card2)
+        resultCard?.removeAllViews()
+        
+        // Add header
+        val header = TextView(requireContext())
+        header.text = "Available Files"
+        header.textSize = 18f
+        header.setTypeface(null, android.graphics.Typeface.BOLD)
+        header.setPadding(0, 0, 0, 16)
+        resultCard?.addView(header)
+        
+        // Add each file as a clickable item
+        fileList.forEach { file ->
+            val fileItem = createFileListItem(file)
+            resultCard?.addView(fileItem)
+        }
+        
+        binding?.tvResultCard?.visibility = View.VISIBLE
+    }
+    
+    /**
+     * Creates a clickable item for each file in the VHL manifest
+     */
+    private fun createFileListItem(file: VhlVerifier.VhlFileInfo): View {
+        val fileItem = LinearLayout(requireContext())
+        fileItem.orientation = LinearLayout.HORIZONTAL
+        fileItem.setPadding(16, 16, 16, 16)
+        fileItem.isClickable = true
+        
+        // Add some background styling
+        val typedValue = TypedValue()
+        requireContext().theme.resolveAttribute(android.R.attr.selectableItemBackground, typedValue, true)
+        fileItem.setBackgroundResource(typedValue.resourceId)
+        
+        // File icon based on type
+        val icon = ImageView(requireContext())
+        when (file.type) {
+            "PDF" -> icon.setImageResource(android.R.drawable.ic_menu_edit)
+            "FHIR_IPS" -> icon.setImageResource(android.R.drawable.ic_menu_info_details)
+            else -> icon.setImageResource(android.R.drawable.ic_menu_help)
+        }
+        icon.layoutParams = LinearLayout.LayoutParams(64, 64)
+        fileItem.addView(icon)
+        
+        // File details
+        val textContainer = LinearLayout(requireContext())
+        textContainer.orientation = LinearLayout.VERTICAL
+        textContainer.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        textContainer.setPadding(16, 0, 0, 0)
+        
+        val title = TextView(requireContext())
+        title.text = file.title
+        title.textSize = 16f
+        title.setTypeface(null, android.graphics.Typeface.BOLD)
+        textContainer.addView(title)
+        
+        val subtitle = TextView(requireContext())
+        subtitle.text = "Type: ${file.type}"
+        subtitle.textSize = 14f
+        textContainer.addView(subtitle)
+        
+        if (file.size != null) {
+            val size = TextView(requireContext())
+            size.text = "Size: ${file.size} bytes"
+            size.textSize = 12f
+            textContainer.addView(size)
+        }
+        
+        fileItem.addView(textContainer)
+        
+        // Click handler
+        fileItem.setOnClickListener {
+            handleFileClick(file)
+        }
+        
+        // Add some margin between items
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        layoutParams.setMargins(0, 8, 0, 8)
+        fileItem.layoutParams = layoutParams
+        
+        return fileItem
+    }
+    
+    /**
+     * Handles clicks on file items
+     */
+    private fun handleFileClick(file: VhlVerifier.VhlFileInfo) {
+        when (file.type) {
+            "PDF" -> {
+                if (file.url != null) {
+                    // Open PDF in browser or external app
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(file.url))
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(requireContext(), "PDF URL not available", Toast.LENGTH_SHORT).show()
+                }
+            }
+            "FHIR_IPS" -> {
+                // Display FHIR IPS content
+                showFhirIpsDialog(file)
+            }
+            else -> {
+                Toast.makeText(requireContext(), "File type not supported: ${file.type}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    /**
+     * Shows FHIR IPS content in a dialog
+     */
+    private fun showFhirIpsDialog(file: VhlVerifier.VhlFileInfo) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(file.title)
+            .setMessage("FHIR IPS Document\n\nThis contains structured health information that would be processed and displayed in a production implementation.")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+    
+    /**
+     * Clears all result fields for VHL display
+     */
+    private fun clearResultFields() {
+        binding?.tvResultScanDate?.visibility = View.GONE
+        binding?.llResultValidUntil?.visibility = View.GONE
+        binding?.tvResultName?.visibility = View.GONE
+        binding?.tvResultPersonDetails?.visibility = View.GONE
+        binding?.tvResultIdentifier?.visibility = View.GONE
+        binding?.llResultHcid?.visibility = View.GONE
+        binding?.llResultPha?.visibility = View.GONE
+        binding?.llResultHw?.visibility = View.GONE
+        binding?.tvResultTestType?.visibility = View.GONE
+        binding?.llResultTestTypeDetail?.visibility = View.GONE
+        binding?.llResultTestDate?.visibility = View.GONE
+        binding?.tvResultTestTitle?.visibility = View.GONE
+        binding?.tvResultVaccineType?.visibility = View.GONE
+        binding?.tvResultDoseTitle?.visibility = View.GONE
+        binding?.llResultDoseDate?.visibility = View.GONE
+        binding?.llResultVaccineValid?.visibility = View.GONE
+        binding?.llResultVaccineInfo?.visibility = View.GONE
+        binding?.llResultVaccineInfo2?.visibility = View.GONE
+        binding?.llResultCentre?.visibility = View.GONE
+        binding?.llResultNextDose?.visibility = View.GONE
+        binding?.llResultStatus?.visibility = View.GONE
     }
 
     override fun onDestroyView() {
