@@ -23,6 +23,7 @@ import org.who.gdhcnvalidator.R
 import org.who.gdhcnvalidator.databinding.FragmentResultBinding
 import org.who.gdhcnvalidator.services.DDCCFormatter
 import org.who.gdhcnvalidator.trust.TrustRegistry
+import org.who.gdhcnvalidator.verify.hcert.healthlink.VhlFileInfo
 import org.who.gdhcnvalidator.verify.hcert.healthlink.VhlVerifier
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
@@ -348,7 +349,7 @@ class ResultFragment : Fragment() {
     /**
      * Shows the list of files available in the VHL manifest
      */
-    private fun showVhlFileList(fileList: List<VhlVerifier.VhlFileInfo>) {
+    private fun showVhlFileList(fileList: List<VhlFileInfo>) {
         // Clear existing content and show file list
         clearResultFields()
         
@@ -376,7 +377,7 @@ class ResultFragment : Fragment() {
     /**
      * Creates a clickable item for each file in the VHL manifest
      */
-    private fun createFileListItem(file: VhlVerifier.VhlFileInfo): View {
+    private fun createFileListItem(file: VhlFileInfo): View {
         val fileItem = LinearLayout(requireContext())
         fileItem.orientation = LinearLayout.HORIZONTAL
         fileItem.setPadding(16, 16, 16, 16)
@@ -442,7 +443,7 @@ class ResultFragment : Fragment() {
     /**
      * Handles clicks on file items
      */
-    private fun handleFileClick(file: VhlVerifier.VhlFileInfo) {
+    private fun handleFileClick(file: VhlFileInfo) {
         when (file.type) {
             "PDF" -> {
                 if (file.url != null) {
@@ -466,7 +467,7 @@ class ResultFragment : Fragment() {
     /**
      * Shows FHIR IPS content in a dialog
      */
-    private fun showFhirIpsDialog(file: VhlVerifier.VhlFileInfo) {
+    private fun showFhirIpsDialog(file: VhlFileInfo) {
         AlertDialog.Builder(requireContext())
             .setTitle(file.title)
             .setMessage("FHIR IPS Document\n\nThis contains structured health information that would be processed and displayed in a production implementation.")
