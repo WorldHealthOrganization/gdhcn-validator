@@ -1,0 +1,175 @@
+name: Preview Branch Deployment
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - develop
+      - 'preview/**'
+      - 'feature/**'
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref != 'refs/heads/main')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Cache gradle
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Set branch name
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "branch_name=pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+            echo "deploy_url=pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+          else
+            branch_name=${GITHUB_REF#refs/heads/}
+            echo "branch_name=${branch_name//\//-}" >> $GITHUB_OUTPUT
+            echo "deploy_url=${branch_name//\//-}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+
+      - name: Build Android APK (Debug)
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Build Web WAR
+        run: ./gradlew :web:bootWar --no-daemon
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ steps.branch.outputs.branch_name }}
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+      - name: Upload Web WAR  
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-war-${{ steps.branch.outputs.branch_name }}
+          path: web/build/libs/web.war
+          retention-days: 7
+
+      # Optional: Deploy to Heroku Review Apps (if configured)
+      - name: Deploy to Heroku Review App
+        if: github.event_name == 'pull_request' && vars.HEROKU_APP_NAME
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ vars.HEROKU_APP_NAME }}-${{ steps.branch.outputs.deploy_url }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: false
+          buildpack: heroku/java
+
+      # Optional: Deploy to custom preview environment
+      - name: Deploy to Preview Environment
+        if: vars.PREVIEW_DEPLOY_ENABLED == 'true'
+        run: |
+          echo "Deploying to preview environment: ${{ steps.branch.outputs.deploy_url }}"
+          # Add your custom deployment commands here
+          # For example, deploy to a staging server, cloud platform, etc.
+
+      - name: Comment deployment info on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = '${{ steps.branch.outputs.branch_name }}';
+            const deployUrl = '${{ steps.branch.outputs.deploy_url }}';
+            
+            let body = `## 🚀 Preview Deployment\n\n`;
+            body += `**Branch:** \`${branchName}\`\n\n`;
+            body += `### Available Artifacts:\n`;
+            body += `- 📱 [Android APK](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            body += `- 🌐 [Web WAR](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n`;
+            
+            if (process.env.HEROKU_APP_NAME) {
+              body += `### Live Preview:\n`;
+              body += `- 🌐 [Web App Preview](https://${{ vars.HEROKU_APP_NAME }}-${deployUrl}.herokuapp.com)\n\n`;
+            }
+            
+            body += `### Installation Instructions:\n`;
+            body += `1. Download the APK from the artifacts above\n`;
+            body += `2. Install on Android device: \`adb install app-debug.apk\`\n`;
+            body += `3. For web app: Download WAR and run \`java -jar web.war\`\n\n`;
+            body += `*Artifacts will be retained for 7 days*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  deploy-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Cache gradle
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+
+      - name: Build Android APK (Debug)
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Build Web WAR
+        run: ./gradlew :web:bootWar --no-daemon
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-main-latest
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Upload Web WAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-war-main-latest
+          path: web/build/libs/web.war
+          retention-days: 30
+
+      # Optional: Deploy to staging environment
+      - name: Deploy to Staging
+        if: vars.STAGING_DEPLOY_ENABLED == 'true'
+        run: |
+          echo "Deploying main branch to staging environment"
+          # Add your staging deployment commands here
