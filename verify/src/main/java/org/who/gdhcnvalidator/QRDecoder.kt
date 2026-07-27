@@ -5,6 +5,7 @@ import org.hl7.fhir.r4.model.Composition
 import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.verify.divoc.DivocVerifier
 import org.who.gdhcnvalidator.verify.hcert.HCertVerifier
+import org.who.gdhcnvalidator.verify.hcert.healthlink.VhlFileInfo
 import org.who.gdhcnvalidator.verify.hcert.healthlink.VhlVerifier
 import org.who.gdhcnvalidator.verify.icao.IcaoVerifier
 import org.who.gdhcnvalidator.verify.shc.ShcVerifier
@@ -48,7 +49,7 @@ class QRDecoder(private val registry: TrustRegistry) {
     data class VhlInfo(
         val decodedLink: VhlVerifier.VhlDecodedLink?,
         val requiresPin: Boolean = false,
-        val fileList: List<VhlVerifier.VhlFileInfo>? = null
+        val fileList: List<VhlFileInfo>? = null
     )
 
     fun decode(qrPayload : String): VerificationResult {

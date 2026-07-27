@@ -164,7 +164,7 @@ class VhlVerifier {
                     type = "PDF", // Assume PDF for DocumentReference
                     title = docRef.description ?: "Document",
                     url = docRef.content?.firstOrNull()?.attachment?.url,
-                    size = docRef.content?.firstOrNull()?.attachment?.size
+                    size = docRef.content?.firstOrNull()?.attachment?.size?.toLong()
                 )
             }
             "Bundle" -> {
