@@ -14,17 +14,49 @@ anywhere. Our goal is to make a Verifier App with the widest possible verificati
    2. Smart Health Cards 
    3. EU DCC, WHO DDCC and LAC PASS DCC 
    4. ICAO Visible Digital Seals
+   5. Verifiable Health Links (VHL), including passcode-protected links
 3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [Global Digital Health Certification Network](https://www.who.int/initiatives/global-digital-health-certification-network)
 4. Transform the QR Payload using [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/) for [International Certificate of Vaccination or Prophylaxis](https://worldhealthorganization.github.io/smart-icvp/artifacts.html) and [International Patient Summary](https://hl7.org/fhir/uv/ips/)
    - **ICVP Logical Models**: Full support for FSH-compliant ICVP models with enhanced validation
    - **Product ID Validation**: Dynamic loading from WHO SMART PreQual CodeSystem with graceful fallback
    - **Document Type Support**: Includes `ndt` (National ID Document Type) field per current specifications
+   - **Medication Overview (MeOW)**: Maps the medication claim to an [IHE PHARM Medication Overview](https://profiles.ihe.net/PHARM/MEOW/) Bundle using the [SMART PH4H](https://smart.who.int/ph4h) Structure Maps
 5. Calculates the assessment of the health information using CQL Libraries from subscribed IGs
 6. Displays the medical information, the credential information, the issuer information and the assessment results in the screen.
+
+## Supported HCERT Claims
+
+Signed `HC1:` payloads carry the health data in a CBOR Web Token claim. The verifier
+dispatches on the claim key found under `-260`:
+
+| Claim | Content | Mapped to |
+|-------|---------|-----------|
+| `1`  | EU DCC | DDCC / FHIR Bundle |
+| `3`  | DDCC Vaccination Core Data Set | FHIR Bundle |
+| `4`  | DDCC Test Result Core Data Set | FHIR Bundle |
+| `5`  | Verifiable Health Link (`vhlink:/`, `shlink://`) | FHIR fetched from the link's manifest |
+| `-6` | ICVP ([smart.who.int/icvp](https://smart.who.int/icvp)) | International Patient Summary |
+| `-7` | Medication Overview ([smart.who.int/ph4h](https://smart.who.int/ph4h)) | IHE Medication Overview Bundle |
+
+### Verifiable Health Links
+
+For a VHL, the QR itself only carries a signed reference to the health data. The verifier
+first checks the HCERT signature and the issuer's trust, then resolves the link:
+
+1. The link (`{url, flag, key, label, exp}`) is decoded from the claim.
+2. If the link is flagged as passcode-protected (`P`), the user is prompted for the passcode.
+3. The manifest is requested from the issuer's server following the
+   [SMART Health Links](https://docs.smarthealthit.org/smart-health-links/) protocol.
+4. Referenced or embedded files are retrieved, decrypted when they are encrypted with the
+   link's key, and displayed as FHIR.
+
+Because the content is fetched from the issuer, VHL verification is the one flow that
+requires network access to a server other than the trust lists.
 
 ## Documentation
 
 ### Project Documentation
+- [**Web Verifier**](web/README.md) - Proof of concept web UI and REST API that runs the same verification engine
 - [**Data Models**](docs/data-models.md) - Comprehensive documentation of all supported certificate data models (DDCC, DCC, DIVOC, SHC, ICAO, ICVP)
 - [**User Workflows**](docs/user-workflows.md) - User experience and technical workflow documentation
 - [**Deployment Guide**](docs/deployment.md) - Complete guide for preview branch and production deployments

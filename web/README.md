@@ -28,11 +28,54 @@ where QRCodeIn.json contains the string representation inside the QR Code. For e
 
 Users can either pass the picture to find the QR Code or find the QR code themselves first and then pass the information inside it along. 
 
-## 3. The output
+The request also accepts an optional `pin`, used to unlock passcode-protected
+Verifiable Health Links (see below):
+
+```json
+{
+  "uri": "HC1:6BFOXN...",
+  "pin": "1234"
+}
+```
+
+## 3. Verifiable Health Links
+
+When the QR carries a Verifiable Health Link, the signed payload only references the health
+data. The signature and the issuer are verified first; the content is then fetched from the
+issuer's server.
+
+If the link is passcode-protected, the first call returns `VHL_REQUIRES_PIN` together with a
+`vhlInfo` object describing the link:
+
+```json
+{
+  "status" : "VHL_REQUIRES_PIN",
+  "issuer" : { "...": "..." },
+  "vhlInfo" : {
+    "decodedLink" : {
+      "url" : "https://example.org/v2/manifests/01f0a8e5-1e94-4ec4-9b31-ac96b208f126",
+      "flag" : "P",
+      "label" : "GDHCN Validator"
+    },
+    "requiresPin" : true
+  }
+}
+```
+
+Repeat the request with the `pin` field to retrieve the content. On success the status is
+`VERIFIED` and `contents` holds the FHIR document fetched from the manifest. `VHL_FETCH_ERROR`
+means the manifest could not be retrieved — most often an incorrect passcode.
+
+In the web UI the same flow is handled by a passcode form on the results page.
+
+> **Note:** `vhlInfo.decodedLink` may include the link's decryption `key`. This is inherent to
+> the SMART Health Links model, but keep it in mind before exposing this API to untrusted clients.
+
+## 4. The output
 
 The output includes stage-by-stage information of the verification process:
 
-- "status" -> Error codes defined [here](https://github.com/WorldHealthOrganization/gdhcn-validator/blob/main/verify/src/main/java/org/who/gdhcnverifier/verify/QRDecoder.kt)
+- "status" -> Error codes defined [here](https://github.com/WorldHealthOrganization/gdhcn-validator/blob/main/verify/src/main/java/org/who/gdhcnvalidator/QRDecoder.kt)
 - "qr" -> the value in the QR. if the QR is binary (DIVOC), it outputs a Base64 of the binary content. 
 - "unpacked" -> the best representation of the contents as expected by each specification
 - "contents" -> the resulting FHIR Composition 
@@ -64,25 +107,29 @@ The output includes stage-by-stage information of the verification process:
 ## Setup
 
 Make sure to have the following pre-requisites installed:
-1. Java 17
-2. Android Studio Koala+
+1. Java 21 (this module and the `verify`/`trust` modules build on a Java 21 toolchain)
+2. Android Studio Koala+ — only needed to work on the Android app in `app/`
 
-Fork and clone this repository and import into Android Studio
+Fork and clone this repository
 ```bash
 git clone https://github.com/WorldHealthOrganization/gdhcn-validator.git
 ```
 
-Use one of the Android Studio builds to install and run the app in your device or a simulator.
-
 ## Building and Running
-Build the app:
+Start the server:
 ```bash
-./gradlew bootRun
+./gradlew :web:bootRun
 ```
 
 It will start spring boot server and run on http://localhost:8080
 
+Without the Android SDK installed, add `--configure-on-demand` so Gradle does not configure
+the `app` module:
+```bash
+./gradlew :web:bootRun --configure-on-demand
+```
+
 ## Testing
 ```bash
-./gradlew test
+./gradlew :web:test
 ```
