@@ -231,6 +231,12 @@ class GDHCNTrustRegistry : TrustRegistry {
         return registries
     }
 
+    private fun resolveFirst(framework: TrustRegistry.Framework, keyIds: List<String>): TrustRegistry.TrustedEntity? {
+        return keyIds.firstNotNullOfOrNull { keyId ->
+            registries.firstNotNullOfOrNull { it.resolve(framework, keyId) }
+        }
+    }
+
     override fun resolve(framework: TrustRegistry.Framework, kid: String): TrustRegistry.TrustedEntity? {
         println("GDHCN: Resolving $framework $kid")
         if (kid.contains("#")) {
@@ -238,21 +244,21 @@ class GDHCNTrustRegistry : TrustRegistry {
              val encController = CountryUtils().getAlpha3Country(parts[0])
             val encKid = parts[1]
 
-            val firstPass = registries.firstNotNullOfOrNull {
-                it.resolve(framework, "$encController#$encKid")
-            } ?: registries.firstNotNullOfOrNull {
-                it.resolve(framework, kid)
-            }
+            // Registries differ in how they escape key ids: the GDHCN trust lists
+            // publish them raw, the DDCC-Trust lists percent-encode them.
+            val candidates = listOf(
+                "$encController#$encKid",
+                kid,
+                "${URLEncoder.encode(parts[0], "UTF-8")}#${URLEncoder.encode(encKid, "UTF-8")}",
+            )
+
+            val firstPass = resolveFirst(framework, candidates)
 
             if (firstPass != null) return firstPass
 
             loadCountry(encController)
 
-            return registries.firstNotNullOfOrNull {
-                it.resolve(framework, "$encController#$encKid")
-            } ?: registries.firstNotNullOfOrNull {
-                it.resolve(framework, kid)
-            }
+            return resolveFirst(framework, candidates)
         } else {
             val encKid = URLEncoder.encode(kid,"UTF-8")
             val firstPass = registries.firstNotNullOfOrNull {
