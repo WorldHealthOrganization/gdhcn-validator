@@ -57,6 +57,7 @@ requires network access to a server other than the trust lists.
 
 ### Project Documentation
 - [**Web Verifier**](web/README.md) - Proof of concept web UI and REST API that runs the same verification engine
+- [**Sample QR Codes**](docs/sample-qr-codes.md) - Test credentials in `docs/`, including the passcode for the VHL sample
 - [**Data Models**](docs/data-models.md) - Comprehensive documentation of all supported certificate data models (DDCC, DCC, DIVOC, SHC, ICAO, ICVP)
 - [**User Workflows**](docs/user-workflows.md) - User experience and technical workflow documentation
 - [**Deployment Guide**](docs/deployment.md) - Complete guide for preview branch and production deployments
