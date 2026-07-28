@@ -161,8 +161,9 @@ class ResultFragment : Fragment() {
             binding?.tvResultCard?.visibility = TextView.VISIBLE
 
             // Check if this is a VHL result with file list
-            if (DDCC.vhlInfo?.fileList != null) {
-                showVhlFileList(DDCC.vhlInfo.fileList)
+            val vhlFileList = DDCC.vhlInfo?.fileList
+            if (vhlFileList != null) {
+                showVhlFileList(vhlFileList)
             } else {
                 // Traditional health certificate display
                 val card = DDCCFormatter().run(DDCC.composition()!!)
