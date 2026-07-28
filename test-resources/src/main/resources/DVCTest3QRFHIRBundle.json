@@ -41,13 +41,12 @@
               ]
             },
             "text": {
-              "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
+              "status": "empty"
             },
             "emptyReason": {
               "coding": [
                 {
-                  "system": "http://hl7.org/fhir/ValueSet/list-empty-reason",
+                  "system": "http://terminology.hl7.org/CodeSystem/list-empty-reason",
                   "code": "unavailable"
                 }
               ]
@@ -65,13 +64,12 @@
               ]
             },
             "text": {
-              "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
+              "status": "empty"
             },
             "emptyReason": {
               "coding": [
                 {
-                  "system": "http://hl7.org/fhir/ValueSet/list-empty-reason",
+                  "system": "http://terminology.hl7.org/CodeSystem/list-empty-reason",
                   "code": "unavailable"
                 }
               ]
@@ -89,13 +87,12 @@
               ]
             },
             "text": {
-              "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
+              "status": "empty"
             },
             "emptyReason": {
               "coding": [
                 {
-                  "system": "http://hl7.org/fhir/ValueSet/list-empty-reason",
+                  "system": "http://terminology.hl7.org/CodeSystem/list-empty-reason",
                   "code": "unavailable"
                 }
               ]
@@ -113,8 +110,7 @@
               ]
             },
             "text": {
-              "status": "empty",
-              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Narrative not available</div>"
+              "status": "empty"
             },
             "entry": [
               {
@@ -129,39 +125,28 @@
       "fullUrl": "urn:uuid:4fad3e42-d4fc-4a12-bf25-732ea47aa147",
       "resource": {
         "resourceType": "Immunization",
+        "extension": [
+          {
+            "url": "http://smart.who.int/pcmt/StructureDefinition/ProductID",
+            "valueCoding": {
+              "system": "http://smart.who.int/pcmt-vaxprequal/CodeSystem/PreQualProductIds",
+              "code": "871772009"
+            }
+          }
+        ],
         "status": "completed",
         "vaccineCode": {
           "coding": [
             {
-              "system": "http://id.who.int/icd/release/11/mms",
-              "code": "871772009"
+              "system": "http://smart.who.int/pcmt-vaxprequal/CodeSystem/PreQualVaccineType"
             }
           ]
         },
         "patient": {
           "reference": "urn:uuid:969e8fbe-52b8-425f-8c4c-bbd6f7aa886f"
         },
-        "manufacturer": {
-          "identifier": {
-            "value": "2.16.858.0.0.1.6"
-          }
-        },
-        "lotNumber": "d23456",
-        "protocolApplied": [
-          {
-            "targetDisease": [
-              {
-                "coding": [
-                  {
-                    "system": "http://id.who.int/icd/release/11/mms",
-                    "code": "RA01"
-                  }
-                ]
-              }
-            ],
-            "doseNumberString": "secondDose"
-          }
-        ]
+        "occurrenceString": "2023-07-04T00:00:00.000Z",
+        "lotNumber": "d23456"
       }
     },
     {

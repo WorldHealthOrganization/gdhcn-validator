@@ -3,13 +3,18 @@ package org.who.gdhcnvalidator.verify.hcert
 import COSE.MessageTag
 import COSE.OneKey
 import COSE.Sign1Message
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.upokecenter.cbor.CBORObject
+import com.upokecenter.cbor.CBORType
 import nl.minvws.encoding.Base45
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.StringType
 import org.who.gdhcnvalidator.QRDecoder
 import org.who.gdhcnvalidator.trust.TrustRegistry
 import org.who.gdhcnvalidator.verify.hcert.dcc.DccMapper
@@ -17,8 +22,10 @@ import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetTR
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetVS
 import org.who.gdhcnvalidator.verify.hcert.ddcc.DdccMapper
 import org.who.gdhcnvalidator.verify.hcert.ddcc.ReferenceDeserializer
-import org.who.gdhcnvalidator.verify.hcert.healthlink.HealthLinkMapper
+import org.who.gdhcnvalidator.verify.hcert.healthlink.SmartHealthLinkModel
+import org.who.gdhcnvalidator.verify.hcert.healthlink.VhlVerifier
 import org.who.gdhcnvalidator.verify.hcert.icvp.DvcMapper
+import org.who.gdhcnvalidator.verify.hcert.meow.MeowMapper
 import java.net.URLDecoder
 import java.security.PublicKey
 import java.util.*
@@ -64,10 +71,15 @@ class HCertVerifier (private val registry: TrustRegistry) {
     }
 
     private fun getKID(input: Sign1Message): String? {
-        val kid = input.protectedAttributes[COSE.HeaderKeys.KID.AsCBOR()]?.GetByteString()
-               ?: input.unprotectedAttributes[COSE.HeaderKeys.KID.AsCBOR()]?.GetByteString()
+        val kid = input.protectedAttributes[COSE.HeaderKeys.KID.AsCBOR()]
+               ?: input.unprotectedAttributes[COSE.HeaderKeys.KID.AsCBOR()]
                ?: return null
-        return Base64.getEncoder().encodeToString(kid)
+        return when (kid.type) {
+            CBORType.ByteString -> Base64.getEncoder().encodeToString(kid.GetByteString())
+            // some wallets encode the kid as a text string (already base64)
+            CBORType.TextString -> kid.AsString()
+            else -> null
+        }
     }
 
     private fun resolveIssuer(kid: String): TrustRegistry.TrustedEntity? {
@@ -104,12 +116,19 @@ class HCertVerifier (private val registry: TrustRegistry) {
     val COUNTRY_CODE = 1
 
     private fun getCountry(hcertPayload: CBORObject): String? {
-        return hcertPayload[COUNTRY_CODE]?.AsString()?.lowercase()
+        // some wallets encode the CWT claim keys as text ("1") instead of int (1)
+        val country = hcertPayload[COUNTRY_CODE] ?: hcertPayload["1"]
+        return country?.AsString()?.lowercase()
     }
 
     fun mapper(): ObjectMapper {
         val module = SimpleModule()
         module.addDeserializer(Reference::class.java, ReferenceDeserializer)
+        // explicit deserializer: Jackson's implicit single-String-constructor discovery
+        // for HAPI primitives varies between versions (silent null on 2.17)
+        module.addDeserializer(StringType::class.java, object : JsonDeserializer<StringType>() {
+            override fun deserialize(p: JsonParser, ctxt: DeserializationContext) = StringType(p.valueAsString)
+        })
         return jacksonObjectMapper().registerModule(module)
     }
 
@@ -130,16 +149,16 @@ class HCertVerifier (private val registry: TrustRegistry) {
                     return DdccMapper().run(it)
                 }
 
-                payload.data?.healthLink?.let {
-                    return HealthLinkMapper().run(it.first())
-                }
-
                 payload.data?.coreDataSetTR?.let {
                     return DdccMapper().run(it)
                 }
 
                 payload.data?.dvc?.let {
                     return DvcMapper().run(it)
+                }
+
+                payload.data?.meow?.let {
+                    return MeowMapper().run(it)
                 }
             } catch (e: Exception) {
                 println("error on: "+ hcertPayload.ToJSONString())
@@ -173,7 +192,7 @@ class HCertVerifier (private val registry: TrustRegistry) {
         return null
     }
 
-    fun unpackAndVerify(qr: String): QRDecoder.VerificationResult {
+    fun unpackAndVerify(qr: String, pin: String? = null): QRDecoder.VerificationResult {
         val hc1Decoded = prefixDecode(qr)
         val decodedBytes = base45Decode(hc1Decoded) ?: return QRDecoder.VerificationResult(QRDecoder.Status.INVALID_ENCODING, null, null, qr, null)
         val deflatedBytes = deflate(decodedBytes) ?: return QRDecoder.VerificationResult(QRDecoder.Status.INVALID_COMPRESSION, null, null, qr, null)
@@ -183,7 +202,12 @@ class HCertVerifier (private val registry: TrustRegistry) {
         val contentsCBOR = getContent(signedMessage)
         val unpacked = unpack(signedMessage, contentsCBOR)
 
-        val contents = toFhir(contentsCBOR) ?: return QRDecoder.VerificationResult(QRDecoder.Status.NOT_SUPPORTED, null, null, qr, unpacked)
+        // VHL/SHLink references (claim 5) bypass the FHIR mapping: the signed
+        // content is the link itself; the health data is fetched from the manifest.
+        val healthLink = getHealthLink(contentsCBOR)
+
+        val contents = if (healthLink != null) null
+            else toFhir(contentsCBOR) ?: return QRDecoder.VerificationResult(QRDecoder.Status.NOT_SUPPORTED, null, null, qr, unpacked)
 
         val kid = getKID(signedMessage) ?: return QRDecoder.VerificationResult(QRDecoder.Status.KID_NOT_INCLUDED, contents, null, qr, unpacked)
         val decodedKid = URLDecoder.decode(kid, "UTF-8")
@@ -200,10 +224,54 @@ class HCertVerifier (private val registry: TrustRegistry) {
             TrustRegistry.Status.REVOKED -> QRDecoder.VerificationResult(QRDecoder.Status.REVOKED_KEYS, contents, issuer, qr, unpacked)
             TrustRegistry.Status.CURRENT ->
                 if (verify(signedMessage, issuer.publicKey))
-                    QRDecoder.VerificationResult(QRDecoder.Status.VERIFIED, contents, issuer, qr, unpacked)
+                    if (healthLink != null)
+                        resolveHealthLink(healthLink, issuer, qr, unpacked, pin)
+                    else
+                        QRDecoder.VerificationResult(QRDecoder.Status.VERIFIED, contents, issuer, qr, unpacked)
                 else
                     QRDecoder.VerificationResult(QRDecoder.Status.INVALID_SIGNATURE, contents, issuer, qr, unpacked)
         }
+    }
+
+    private fun getHealthLink(hcertPayload: CBORObject): SmartHealthLinkModel? {
+        return try {
+            mapper().readValue(hcertPayload.ToJSONString(), CWTPayload::class.java)
+                .data?.healthLink?.firstOrNull { it.getUri() != null }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * The HCERT signature over the link is already verified; decode the link and,
+     * when allowed (no PIN required, or PIN provided), fetch the manifest content.
+     */
+    private fun resolveHealthLink(
+        link: SmartHealthLinkModel,
+        issuer: TrustRegistry.TrustedEntity,
+        qr: String,
+        unpacked: String?,
+        pin: String?,
+    ): QRDecoder.VerificationResult {
+        val vhl = VhlVerifier()
+        val decoded = vhl.decodeVhlUri(link.getUri()!!)
+            ?: return QRDecoder.VerificationResult(QRDecoder.Status.VHL_INVALID_URI, null, issuer, qr, unpacked)
+
+        val requiresPin = vhl.isPinRequired(decoded)
+        val vhlInfo = QRDecoder.VhlInfo(decodedLink = decoded, requiresPin = requiresPin)
+
+        if (requiresPin && pin.isNullOrBlank()) {
+            return QRDecoder.VerificationResult(QRDecoder.Status.VHL_REQUIRES_PIN, null, issuer, qr, unpacked, vhlInfo)
+        }
+
+        val manifest = vhl.fetchManifest(VhlVerifier.VhlManifestRequest(decoded.url, pin, decoded.key))
+            ?: return QRDecoder.VerificationResult(QRDecoder.Status.VHL_FETCH_ERROR, null, issuer, qr, unpacked, vhlInfo)
+
+        val fileList = vhl.extractFileList(manifest)
+        return QRDecoder.VerificationResult(
+            QRDecoder.Status.VERIFIED, manifest, issuer, qr, unpacked,
+            vhlInfo.copy(fileList = fileList)
+        )
     }
 
     private fun unpack(signedMessage: Sign1Message, contents: CBORObject): String? {

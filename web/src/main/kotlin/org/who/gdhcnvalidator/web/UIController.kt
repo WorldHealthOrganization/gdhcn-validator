@@ -31,6 +31,20 @@ class UIController {
             return RedirectView("showCredential");
         }
 
+        return showResult(result, redirect)
+    }
+
+    @PostMapping("/authorizeVhl")
+    fun authorizeVhl(
+        @RequestParam("uri") uri: String,
+        @RequestParam("pin") pin: String,
+        redirect: RedirectAttributes,
+    ): RedirectView {
+        val result = RestController().verify(RestController.QRContents(uri, pin))
+        return showResult(result, redirect)
+    }
+
+    private fun showResult(result: QRDecoder.VerificationResult, redirect: RedirectAttributes): RedirectView {
         val fhir = FhirContext.forCached(FhirVersionEnum.R4)
             .newJsonParser()
             .setPrettyPrint(true);
@@ -39,6 +53,10 @@ class UIController {
 
         redirect.addFlashAttribute("status", result.status)
         redirect.addFlashAttribute("qr", result.qr)
+        if (result.status == QRDecoder.Status.VHL_REQUIRES_PIN) {
+            redirect.addFlashAttribute("vhlRequiresPin", true)
+            result.vhlInfo?.decodedLink?.label?.let { redirect.addFlashAttribute("vhlLabel", it) }
+        }
         if (result.contents != null)
             redirect.addFlashAttribute("contents", fhir.encodeResourceToString(result.contents))
         if (result.issuer != null)

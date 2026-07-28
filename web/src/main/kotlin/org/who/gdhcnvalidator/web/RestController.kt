@@ -34,11 +34,12 @@ class RestController {
 
     data class QRContents(
         val uri: String,
+        val pin: String? = null,
     )
 
     @PostMapping("/verify")
     fun verify(@RequestBody qr: QRContents): QRDecoder.VerificationResult {
-        return QRDecoder(registry).decode(qr.uri)
+        return QRDecoder(registry).decode(qr.uri, qr.pin)
     }
 
     @PostMapping("/findAndVerify")

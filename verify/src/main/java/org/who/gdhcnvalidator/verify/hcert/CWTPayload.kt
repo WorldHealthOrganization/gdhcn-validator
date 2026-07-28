@@ -16,6 +16,7 @@ import org.who.gdhcnvalidator.verify.hcert.dcc.logical.DdccCoreDataSetVS
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.HCertDCC
 import org.who.gdhcnvalidator.verify.hcert.dcc.logical.HCertDVC
 import org.who.gdhcnvalidator.verify.hcert.healthlink.SmartHealthLinkModel
+import org.who.gdhcnvalidator.verify.hcert.meow.HCertMeow
 import java.util.Date
 
 
@@ -55,6 +56,8 @@ class HCert(
     val healthLink: List<SmartHealthLinkModel>?,
     @JsonProperty("-6")
     val dvc: HCertDVC?,
+    @JsonProperty("-7")
+    val meow: HCertMeow?,
 ): BaseModel()
 
 object DecimalToDataTimeDeserializer: JsonDeserializer<DateTimeType>() {

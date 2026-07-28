@@ -10,8 +10,9 @@ open class IcvpEventLogicalModel(
     nationality: CodeType?,
 
     nid: StringType?,
+    ndt: CodeType?,
     guardian: StringType?,
 
     issuer: Reference?,
     vaccineDetail: DvcVaccineDetails
-): DvcLogicalModel(name, dob, sex, nationality, nid, guardian, issuer, vaccineDetail)
+): DvcLogicalModel(name, dob, sex, nationality, nid, ndt, guardian, issuer, vaccineDetail)

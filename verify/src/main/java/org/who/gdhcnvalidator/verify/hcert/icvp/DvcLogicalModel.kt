@@ -20,20 +20,19 @@ open class DvcLogicalModel(
     var nationality: CodeType? = null,
 
     var nid: StringType? = null,
+    var ndt: CodeType? = null, // National ID Document Type
     var guardian: StringType? = null,
 
     @JsonDeserialize(using = ReferenceDeserializer::class)
     var issuer: Reference? = null,
     var vaccineDetails: DvcVaccineDetails? = null,
 ): BaseModel() {
-    override fun copy(): Resource? { return DvcLogicalModel(name, dob, sex, nationality, nid, guardian, issuer, vaccineDetails) }
+    override fun copy(): Resource? { return DvcLogicalModel(name, dob, sex, nationality, nid, ndt, guardian, issuer, vaccineDetails) }
     override fun getResourceType(): ResourceType? {
-        println("DvcLogicalModel GetResourceType")
         return ResourceType.StructureDefinition
     }
 
     override fun makeProperty(hash: Int, name: String?): Base {
-        println("DvcLogicalModel makeProperty")
         return when (hash) {
             "vaccineDetails".hashCode() -> {
                 val newVac = DvcVaccineDetails()
@@ -52,6 +51,7 @@ open class DvcLogicalModel(
             "sex".hashCode() -> sex = (value as? CodeType)
             "nationality".hashCode() -> nationality = (value as? CodeType)
             "nid".hashCode() -> nid = (value as? StringType)
+            "ndt".hashCode() -> ndt = (value as? CodeType)
             "guardian".hashCode() -> guardian = (value as? StringType)
             "vaccineDetails".hashCode() -> vaccineDetails = (value as? DvcVaccineDetails)
             else -> super.setProperty(hash, name, value)
@@ -67,6 +67,7 @@ open class DvcLogicalModel(
             "sex" -> sex = (value as? CodeType)
             "nationality" -> nationality = (value as? CodeType)
             "nid" -> nid = (value as? StringType)
+            "ndt" -> ndt = (value as? CodeType)
             "guardian" -> guardian = (value as? StringType)
             "vaccineDetails" -> vaccineDetails = (value as? DvcVaccineDetails)
             else -> super.setProperty(name, value)
@@ -75,6 +76,27 @@ open class DvcLogicalModel(
     }
 
     override fun fhirType(): String {
-        return "ModelDVC"
+        return "ICVP"
+    }
+    
+    /**
+     * Validates ICVP constraints for the logical model
+     */
+    fun validateIcvpConstraints(): List<String> {
+        val errors = mutableListOf<String>()
+        
+        // Validate National ID Document Type
+        if (!IcvpValidation.validateNationalIdDocumentType(ndt?.value)) {
+            errors.add("National ID Document Type (ndt) must be a valid identifier type from v2-0203")
+        }
+        
+        // Validate vaccine details if present
+        vaccineDetails?.let { details ->
+            if (details is DvcVaccineDetails) {
+                errors.addAll(details.validateIcvpConstraints())
+            }
+        }
+        
+        return errors
     }
 }

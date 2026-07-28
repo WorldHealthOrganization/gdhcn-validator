@@ -108,7 +108,9 @@ class QRVerifyTest: BaseTrustRegistryTest() {
 
     @Test
     fun verifyDVC() {
-        verify("DVCTestQR.txt", "DVCTestQRFHIRBundle.json", QRDecoder.Status.ISSUER_NOT_TRUSTED)
+        // country XL resolves to the xcl trust list entries; this legacy QR is
+        // not signed by the currently published key
+        verify("DVCTestQR.txt", "DVCTestQRFHIRBundle.json", QRDecoder.Status.INVALID_SIGNATURE)
     }
 
     @Test
