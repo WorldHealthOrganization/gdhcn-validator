@@ -1,45 +1,53 @@
 {
-  "due_date": "2021-07-29",
-  "vaccine_valid": "2021-07-22",
-  "name": "Eddie Murphy",
-  "hw": "http://www.acme.org/practitioners/23",
-  "sex": {
-    "code": "male",
-    "system": "http://hl7.org/fhir/administrative-gender"
+  "protectedAttributes": {
+    "1": -7
   },
-  "valid_from": "2021-07-08",
-  "disease": {
-    "code": "840539006",
-    "system": "http://snomed.info/sct"
+  "unprotectedAttributes": {
+    "4": "MTE"
   },
-  "total_doses": 2,
-  "date": "2021-07-08",
-  "vaccine": {
-    "code": "1119349007",
-    "system": "http://snomed.info/sct"
-  },
-  "birthDate": "1986-09-19",
-  "lot": "PT123F",
-  "centre": "Vaccination Site",
-  "brand": {
-    "code": "TEST",
-    "system": "http://worldhealthorganization.github.io/ddcc/CodeSystem/DDCC-Example-Test-CodeSystem"
-  },
-  "pha": "wA69g8VD512TfTTdkTNSsG",
-  "dose": 1,
-  "ma_holder": {
-    "code": "TEST",
-    "system": "http://worldhealthorganization.github.io/ddcc/CodeSystem/DDCC-Example-Test-CodeSystem"
-  },
-  "hcid": "US111222333444555666",
-  "manufacturer": {
-    "code": "TEST",
-    "system": "http://worldhealthorganization.github.io/ddcc/CodeSystem/DDCC-Example-Test-CodeSystem"
-  },
-  "identifier": "1234567890",
-  "valid_until": "2022-07-08",
-  "country": {
-    "code": "USA",
-    "system": "urn:iso:std:iso:3166"
+  "contents": {
+    "hw": "http://www.acme.org/practitioners/23",
+    "lot": "PT123F",
+    "pha": "wA69g8VD512TfTTdkTNSsG",
+    "sex": {
+      "code": "male",
+      "system": "http://hl7.org/fhir/administrative-gender"
+    },
+    "date": "2021-07-08",
+    "dose": 1,
+    "hcid": "US111222333444555666",
+    "name": "Eddie Murphy",
+    "brand": {
+      "code": "TEST",
+      "system": "http://worldhealthorganization.github.io/ddcc/CodeSystem/DDCC-Example-Test-CodeSystem"
+    },
+    "centre": "Vaccination Site",
+    "country": {
+      "code": "USA",
+      "system": "urn:iso:std:iso:3166"
+    },
+    "disease": {
+      "code": "840539006",
+      "system": "http://snomed.info/sct"
+    },
+    "vaccine": {
+      "code": "1119349007",
+      "system": "http://snomed.info/sct"
+    },
+    "due_date": "2021-07-29",
+    "birthDate": "1986-09-19",
+    "ma_holder": {
+      "code": "TEST",
+      "system": "http://worldhealthorganization.github.io/ddcc/CodeSystem/DDCC-Example-Test-CodeSystem"
+    },
+    "identifier": "1234567890",
+    "valid_from": "2021-07-08",
+    "total_doses": 2,
+    "valid_until": "2022-07-08",
+    "manufacturer": {
+      "code": "TEST",
+      "system": "http://worldhealthorganization.github.io/ddcc/CodeSystem/DDCC-Example-Test-CodeSystem"
+    },
+    "vaccine_valid": "2021-07-22"
   }
 }

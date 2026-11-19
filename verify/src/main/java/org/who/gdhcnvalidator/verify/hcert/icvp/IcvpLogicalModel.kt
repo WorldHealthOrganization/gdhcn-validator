@@ -1,0 +1,17 @@
+package org.who.gdhcnvalidator.verify.hcert.icvp
+
+import org.hl7.fhir.r4.model.*
+
+open class IcvpLogicalModel(
+    name: StringType?,
+    dob: DateType?,
+    sex: CodeType?,
+    nationality: CodeType?,
+
+    nid: StringType?,
+    ndt: CodeType?,
+    guardian: StringType?,
+
+    issuer: Reference?,
+    vaccineDetails: IcvpVaccineDetails
+): DvcLogicalModel(name, dob, sex, nationality, nid, ndt, guardian, issuer, vaccineDetails)

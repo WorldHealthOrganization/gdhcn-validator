@@ -1,24 +1,39 @@
 {
-  "v": [
-    {
-      "dn": 2,
-      "ma": "ORG-100030215",
-      "vp": "1119349007",
-      "dt": "2021-05-27",
-      "co": "DE",
-      "ci": "URN:UVCI:01DE/IZ78628A/3FOBXW0A0U0E0NUDKHMSVF#G",
-      "is": "Robert Koch-Institut",
-      "mp": "EU/1/20/1528",
-      "sd": 2,
-      "tg": "840539006"
-    }
-  ],
-  "nam": {
-    "fnt": "FELLHAUER",
-    "fn": "Fellhauer",
-    "gnt": "MONIKA",
-    "gn": "Monika"
-  },
-  "dob": "1984-02-24",
-  "ver": "1.0.0"
+   "protectedAttributes":{
+      "1":-7
+   },
+   "unprotectedAttributes":{
+      "4":"yWCRdph8XJs"
+   },
+   "contents":{
+      "1":"DE",
+      "4":1656604020,
+      "6":1625068020,
+      "-260":{
+         "1":{
+            "v":[
+               {
+                  "ci":"URN:UVCI:01DE/IZ78628A/3FOBXW0A0U0E0NUDKHMSVF#G",
+                  "co":"DE",
+                  "dn":2,
+                  "dt":"2021-05-27",
+                  "is":"Robert Koch-Institut",
+                  "ma":"ORG-100030215",
+                  "mp":"EU/1/20/1528",
+                  "sd":2,
+                  "tg":"840539006",
+                  "vp":"1119349007"
+               }
+            ],
+            "dob":"1984-02-24",
+            "nam":{
+               "fn":"Fellhauer",
+               "gn":"Monika",
+               "fnt":"FELLHAUER",
+               "gnt":"MONIKA"
+            },
+            "ver":"1.0.0"
+         }
+      }
+   }
 }

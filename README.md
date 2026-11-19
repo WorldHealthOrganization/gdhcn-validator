@@ -1,8 +1,10 @@
-# World Health Organization's DDCC Verifier App
+# World Health Organization's GDHCN Verifier App
 
 <img align="right" src="./docs/screenshots/3.Results.png" data-canonical-src="./docs/screenshots/3.Results.png" width="350px"/>
 
-COVID-19 Credential Verifier app for Android using the WHO's Digital Documentation of COVID-19 Certificates. The app scans a QR code for a credential/pass, cryptographically verifies it and displays the results on the phone. No information is transmitted anywhere. Our goal is to make a Verifier App with the widest possible verification capabilities.
+Digital Health Certificates verifier app for Android. The app scans a QR code for a credential/pass, 
+cryptographically verifies it and displays the results on the phone. No information is transmitted 
+anywhere. Our goal is to make a Verifier App with the widest possible verification capabilities.
 
 # Current Features
 
@@ -10,25 +12,75 @@ COVID-19 Credential Verifier app for Android using the WHO's Digital Documentati
 2. Cryptographically Verifies the information following the specifications of
    1. W3C VC
    2. Smart Health Cards 
-   3. EU DCC, WHO DCC and LAC PASS DCC 
+   3. EU DCC, WHO DDCC and LAC PASS DCC 
    4. ICAO Visible Digital Seals
-3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [DDCC repo](https://github.com/WorldHealthOrganization/ddcc-trust)
-4. Transform the QR Payload using the DDCC [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/)
+   5. Verifiable Health Links (VHL), including passcode-protected links
+3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [Global Digital Health Certification Network](https://www.who.int/initiatives/global-digital-health-certification-network)
+4. Transform the QR Payload using [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/) for [International Certificate of Vaccination or Prophylaxis](https://worldhealthorganization.github.io/smart-icvp/artifacts.html) and [International Patient Summary](https://hl7.org/fhir/uv/ips/)
+   - **ICVP Logical Models**: Full support for FSH-compliant ICVP models with enhanced validation
+   - **Product ID Validation**: Dynamic loading from WHO SMART PreQual CodeSystem with graceful fallback
+   - **Document Type Support**: Includes `ndt` (National ID Document Type) field per current specifications
+   - **Medication Overview (MeOW)**: Maps the medication claim to an [IHE PHARM Medication Overview](https://profiles.ihe.net/PHARM/MEOW/) Bundle using the [SMART PH4H](https://smart.who.int/ph4h) Structure Maps
 5. Calculates the assessment of the health information using CQL Libraries from subscribed IGs
 6. Displays the medical information, the credential information, the issuer information and the assessment results in the screen.
 
-# Development Overview
+## Supported HCERT Claims
 
+Signed `HC1:` payloads carry the health data in a CBOR Web Token claim. The verifier
+dispatches on the claim key found under `-260`:
+
+| Claim | Content | Mapped to |
+|-------|---------|-----------|
+| `1`  | EU DCC | DDCC / FHIR Bundle |
+| `3`  | DDCC Vaccination Core Data Set | FHIR Bundle |
+| `4`  | DDCC Test Result Core Data Set | FHIR Bundle |
+| `5`  | Verifiable Health Link (`vhlink:/`, `shlink://`) | FHIR fetched from the link's manifest |
+| `-6` | ICVP ([smart.who.int/icvp](https://smart.who.int/icvp)) | International Patient Summary |
+| `-7` | Medication Overview ([smart.who.int/ph4h](https://smart.who.int/ph4h)) | IHE Medication Overview Bundle |
+
+### Verifiable Health Links
+
+For a VHL, the QR itself only carries a signed reference to the health data. The verifier
+first checks the HCERT signature and the issuer's trust, then resolves the link:
+
+1. The link (`{url, flag, key, label, exp}`) is decoded from the claim.
+2. If the link is flagged as passcode-protected (`P`), the user is prompted for the passcode.
+3. The manifest is requested from the issuer's server following the
+   [SMART Health Links](https://docs.smarthealthit.org/smart-health-links/) protocol.
+4. Referenced or embedded files are retrieved, decrypted when they are encrypted with the
+   link's key, and displayed as FHIR.
+
+Because the content is fetched from the issuer, VHL verification is the one flow that
+requires network access to a server other than the trust lists.
+
+## Documentation
+
+### Project Documentation
+- [**Web Verifier**](web/README.md) - Proof of concept web UI and REST API that runs the same verification engine
+- [**Sample QR Codes**](docs/sample-qr-codes.md) - Test credentials in `docs/`, including the passcode for the VHL sample
+- [**Data Models**](docs/data-models.md) - Comprehensive documentation of all supported certificate data models (DDCC, DCC, DIVOC, SHC, ICAO, ICVP)
+- [**User Workflows**](docs/user-workflows.md) - User experience and technical workflow documentation
+- [**Deployment Guide**](docs/deployment.md) - Complete guide for preview branch and production deployments
+- [**Adding New Schemas**](NEW_SCHEMAS.md) - Guide for adding support for new certificate formats
+
+### Reference Documentation
+- https://worldhealthorganization.github.io/smart-trust/
+- https://worldhealthorganization.github.io/smart-icvp
+- https://worldhealthorganization.github.io/ddcc/
+- https://smart.who.int/trust/
+
+# Development Overview
+- 
 ## Setup
 
 Make sure to have the following pre-requisites installed:
-1. Java 11
-2. Android Studio Artic Fox+
+1. Java 17
+2. Android Studio Koala+
 3. Android 7.0+ Phone or Emulation setup
 
 Fork and clone this repository and import into Android Studio
 ```bash
-git clone https://github.com/WorldHealthOrganization/ddcc-validator.git
+git clone https://github.com/WorldHealthOrganization/gdhcn-validator.git
 ```
 
 Use one of the Android Studio builds to install and run the app in your device or a simulator.
@@ -62,7 +114,7 @@ Follow server setup [here](https://www.keycloak.org/getting-started/getting-star
 8. Create a client with: 
   - Client Id: verifier-app 
   - Client Protocol: openid-connect
-  - Redirect URIs: org.who.ddccverifier:/redirect
+  - Redirect URIs: org.who.gdhcnverifier:/redirect
 
 Start keycloak with the local network's IP a phone can reach:
 ```bash
@@ -78,7 +130,7 @@ Android will connect with your local IP. Just make sure the phone is in the same
 │                  MainActivity                    │      │ TrustRegistry  │   │ IgRegistry │
 └──────────────────────────────────────────────────┘      └─────────────╥──┘   └─────╥──────┘
 ┌──────────────┐ ┌──────────────┐ ┌────────────────┐                    ║            ║
-│ HomeFragment ├→┤ ScanFragment ├→┤ ResultFragment │←─DDCC UI Card──────╫─────────┐  ║
+│ HomeFragment ├→┤ ScanFragment ├→┤ ResultFragment │←─GDHCN UI Card─────╫─────────┐  ║
 └──────────────┘ └─────┬──▲─────┘ └────────┬───────┘                    ║         │  ║
                   Image│  │QRContent       │QRContent                   ║         │  ║
                  ┌─────▼──┴─────┐     ┌────▼───────┐                    ║         │  ║
@@ -98,7 +150,7 @@ Android will connect with your local IP. Just make sure the phone is in the same
       │WhoModel  │DccModel    │ShcModel          │DivocModel         │IcaoModel   │  ║
 ╔═════╪══════════╪════════════╪══════════════════╪═══════════════════╪═════════╗  │  ║ StructureMaps
 ║ ┌───▼───────┐┌─▼─────────┐┌─▼─────────┐  ┌─────▼───────┐ ┌─────────▼───────┐ ║  │  ║ 
-║ │ WHOMapper ││ DCCMapper ││ JWTMapper │  │ DivocMapper │ │   IJsonMapper   │ ║══│══╝
+║ │ DDCCMapper││ DCCMapper ││ JWTMapper │  │ DivocMapper │ │   IJsonMapper   │ ║══│══╝
 ║ └───┬───────┘└──┬────────┘└─┬─────────┘  └─────┬───────┘ └─────────┬───────┘ ║  │  ║
 ╚═════╪═══════════╪═══════════╪══════════════════╪═══════════════════╪═════════╝  │  ║
       └───────────┴───────────┴────────────┬─────┴───────────────────┘            │  ║
@@ -119,15 +171,19 @@ Android will connect with your local IP. Just make sure the phone is in the same
                                            │Patient ID, Rule ID                   │
                                  ┌─────────▼──────────────┐                       │
                                  │  Android Fhir Workflow │                       │
-                                 │ (Evaluate DDCC Status) │                       │  
+                                 │   (Evaluate Status)    │                       │  
                                  └─────────┬──────────────┘                       │
-                                           │DDCC Composite, DDCC Status           │
+                                           │Fhir Composite, Status                │
                                     ┌──────▼─────────┐                            │
-                                    │ DDCCFormatter  ├→─ DDCC UI Card ────────────┘
+                                    │    Formatter   ├→─ UI Card ─────────────────┘
                                     └────────────────┘
 ```
 
 ## How to Deploy
+
+> **📖 For comprehensive deployment documentation, see the [Deployment Guide](docs/deployment.md)**
+
+### Quick Start - Production Release
 
 1. Generate a new signing key 
 ```
@@ -141,13 +197,23 @@ keytool -genkey -v -keystore <my-release-key.keystore> -alias <alias_name> -keya
 3. Change the `versionCode` and `versionName` on `app/build.gradle`
 4. Commit and push. 
 5. Tag the commit with `v{x.x.x}`
-6. Let the [Create Release GitHub Action](https://github.com/WorldHealthOrganization/ddcc-validator/actions/workflows/create-release.yml) build a new `aab` file. 
+6. Let the [Create Release GitHub Action](https://github.com/WorldHealthOrganization/gdhcn-validator/actions/workflows/create-release.yml) build a new `aab` file. 
 7. Add your CHANGE LOG to the description of the new release
-8. Download the `aab` file and upload it to the` PlayStore. 
+8. Download the `aab` file and upload it to the PlayStore.
+
+### Preview Branch Deployment
+
+For testing changes before production:
+
+- **Pull Requests**: Automatic preview deployment with artifacts and optional live preview
+- **Feature Branches**: Push to `preview/*` or `feature/*` branches for manual deployment
+- **Main Branch**: Automatic staging deployment on every push to main
+
+See the [Deployment Guide](docs/deployment.md) for detailed instructions on preview deployments, configuration options, and troubleshooting. 
 
 # Contributing
 
-[Issues](https://github.com/WorldHealthOrganization/ddcc-validator/issues) and [pull requests](https://github.com/WorldHealthOrganization/ddcc-validator/pulls) are very welcome.
+[Issues](https://github.com/WorldHealthOrganization/gdhcn-validator/issues) and [pull requests](https://github.com/WorldHealthOrganization/gdhcn-validator/pulls) are very welcome.
 
 # License
 
@@ -163,65 +229,4 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License.# ddcc-validator
-
-> **New! See [docs/data-models.md](./docs/data-models.md) and [docs/user-workflows.md](./docs/user-workflows.md) for architecture, data models, and developer workflows.**
-
----
-
-## Overview
-
-This project verifies and transforms digital health certificates from multiple standards (EU DCC, WHO DDCC, SHC, DIVOC, ICAO) into FHIR and other interoperable formats.
-
-### Documentation
-
-- [Digital Health Certificate Data Models](./docs/data-models.md):  
-  Detailed overview of all certificate models used in the system, with source code links.
-- [User Workflows and Developer Orientation](./docs/user-workflows.md):  
-  Main user workflows, step-by-step usage, and guidance for adding new models or versions.
-
----
-
-## Current Features
-
-1. Decodes QR Codes
-2. Cryptographically Verifies the information following the specifications of
-   1. W3C VC
-   2. Smart Health Cards 
-   3. EU DCC, WHO DCC and LAC PASS DCC 
-   4. ICAO Visible Digital Seals
-3. Verifies the issuer's trust using a [DID-Based](https://www.w3.org/TR/did-core/) Trust List from the [DDCC repo](https://github.com/WorldHealthOrganization/ddcc-trust)
-4. Transform the QR Payload using the DDCC [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/)
-5. Calculates the assessment of the health information using CQL Libraries from subscribed IGs
-6. Displays the medical information, the credential information, the issuer information and the assessment results in the screen.
-
----
-
-## Architecture and Diagrams
-
-See the [Digital Health Certificate Data Models](./docs/data-models.md) and [User Workflows and Developer Orientation](./docs/user-workflows.md) for detailed architecture, workflow, and extension guidance.
-
----
-
-## Class Diagram
-
-```
- ║ │  HCertVerifier │  │ ShcVerifier │   │ DivocVerifier │   │ IcaoVerifier  │ ║  │  ║
- ║ └────┬───────────┘  └──────┬──────┘   └───────┬───────┘   └───────┬───────┘ ║  │  ║
- ╚══════╪═════════════════════╪══════════════════╪═══════════════════╪═════════╝  │  ║
-        │HCERT CBOR           │JWT JSON          │JSONLD W3C VC      │iJSON       │  ║
-   ┌────▼───────────┐  ┌──────▼──────┐    ┌──────▼──────┐     ┌──────▼──────┐     │  ║
-```
-
----
-
-## Further Reading
-
-- [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/)
-- [Trust Verification](https://github.com/WorldHealthOrganization/ddcc-trust)
-
----
-
-## License
-
-[MIT](./LICENSE)
+limitations under the License.

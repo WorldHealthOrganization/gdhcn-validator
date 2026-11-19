@@ -1,0 +1,30 @@
+{
+  "protectedAttributes" : {
+    "1" : -7,
+    "4" : "UUuJcwmjoJM"
+  },
+  "unprotectedAttributes" : { },
+  "contents" : {
+    "1" : "XCL",
+    "6" : 1727101283,
+    "-260" : {
+      "-6" : {
+        "n" : "Albani Olivieri",
+        "s" : "female",
+        "v" : {
+          "bo" : "d23456",
+          "dn" : "secondDose",
+          "dt" : "2023-07-04",
+          "ma" : "Banco de Seguros del Estado",
+          "mp" : "1",
+          "tg" : "RA01",
+          "vp" : "871772009",
+          "mid" : "2.16.858.0.0.1.6",
+          "vls" : "2023-07-04"
+        },
+        "dob" : "1999-05-05",
+        "nid" : "27253137"
+      }
+    }
+  }
+}
