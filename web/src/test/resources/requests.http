@@ -29,9 +29,6 @@ GET http://localhost:8080/
 
 
 
-curl -X POST --location "https://ddcc-validator.pathcheck.org/verify" -H "Content-Type: application/json" -d "@QRCodeIn.json"
-
-curl --form file='@QRCode.png' https://ddcc-validator.pathcheck.org/findAndVerify
 
 curl --form file='@QRCode.png' http://localhost:8080/findAndVerify
 

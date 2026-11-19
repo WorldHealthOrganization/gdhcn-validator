@@ -1,69 +1,295 @@
-# User Workflows and Developer Orientation
+# User Workflows Documentation
 
-This guide describes main user workflows and provides orientation for developers aiming to add new certificate models or new model versions to the system. It ties together user experience and backend code structure, so new contributors can quickly understand where to integrate new logic.
+This document describes the user experience and technical workflows in the GDHCN Validator app.
 
-See also: [Digital Health Certificate Data Models](./data-models.md)
+## Table of Contents
 
----
+- [User Journey Overview](#user-journey-overview)
+- [Detailed User Workflow](#detailed-user-workflow)
+  - [1. App Launch and Home Screen](#1-app-launch-and-home-screen)
+  - [2. QR Code Scanning](#2-qr-code-scanning)
+  - [3. QR Code Processing and Verification](#3-qr-code-processing-and-verification)
+  - [4. Clinical Decision Support](#4-clinical-decision-support)
+  - [5. Results Display](#5-results-display)
+- [Error Handling and Edge Cases](#error-handling-and-edge-cases)
+- [Technical Architecture Summary](#technical-architecture-summary)
+- [Data Flow Diagram](#data-flow-diagram)
+- [Developer Guide: Adding a New Model or Version](#developer-guide-adding-a-new-model-or-version)
+- [Example: Adding "MyNewDCC"](#example-adding-mynewdcc)
 
-## Workflow Overview
+## User Journey Overview
 
-### 1. Scanning and Decoding a Health Certificate
+The GDHCN Validator app provides a simple, secure way for users to verify digital health certificates. The typical user workflow involves three main steps:
 
-**User Action:**  
-- The user scans a QR code or uploads a digital certificate file.
+1. **Open and Navigate** - User opens the app and navigates to the scanner
+2. **Scan QR Code** - User points camera at a health certificate QR code  
+3. **View Results** - User sees verification results and health information
 
-**System Flow:**  
-1. **Decoding:**  
-   - The QR or file input is decoded according to format (e.g., Base45, CBOR, JWT, JSON-LD).
-   - *Key Entry Point:*  
-     - [HCertVerifier.kt](../verify/src/main/java/org/who/ddccverifier/verify/hcert/HCertVerifier.kt) for HCERT (EU DCC, WHO DDCC)
-     - [ShcMapper.kt](../verify/src/main/java/org/who/ddccverifier/verify/shc/ShcMapper.kt) for SHC
-     - [DivocMapper.kt](../verify/src/main/java/org/who/ddccverifier/verify/divoc/DivocMapper.kt) for DIVOC
-     - [IcaoMapper.kt](../verify/src/main/java/org/who/ddccverifier/verify/icao/IcaoMapper.kt) for ICAO
+## Detailed User Workflow
 
-2. **Model Detection and Instantiation:**  
-   - The payload format is detected (HCERT, SHC, etc.)
-   - The payload is deserialized into the corresponding model:
-     - **EU DCC/WHO DDCC:** `CWT` → `HCERT` → `EUDCC` or `WHO_CoreDataSet_*`
-     - **SHC:** `JWTPayload`
-     - **DIVOC:** `W3CVC`
-     - **ICAO:** `IJson`
-   - *Model definitions are found in [`verify/src/main/java/org/who/ddccverifier/verify/`](../verify/src/main/java/org/who/ddccverifier/verify/)* under folders for each standard.
+### 1. App Launch and Home Screen
 
----
+**User Experience:**
+- User opens the GDHCN Validator app
+- Lands on the home screen with options to scan a QR code
+- Can access settings, help, or other app features
 
-### 2. Verification
+**Technical Flow:**
+- [`MainActivity`](../app/src/main/java/org/who/gdhcnvalidator/MainActivity.kt) launches
+- Initializes [`FhirApplication`](../app/src/main/java/org/who/gdhcnvalidator/FhirApplication.kt) context
+- Loads [`HomeFragment`](../app/src/main/java/org/who/gdhcnvalidator/views/HomeFragment.kt)
+- Sets up navigation between fragments
 
-**User Action:**  
-- The user expects verification of authenticity and trust.
+### 2. QR Code Scanning
 
-**System Flow:**  
-1. **Signature Verification:**  
-   - Each model type has a specific cryptographic verification step (COSE, JWT, etc.).
-   - Trust is validated via a trusted issuer registry ([TrustRegistry](../verify/src/main/java/org/who/ddccverifier/trust/TrustRegistry.kt)).
-2. **Error Handling:**  
-   - If verification fails, the user is notified and the workflow ends.
-   - If successful, proceed to transformation.
+**User Experience:**
+- User taps "Scan QR Code" button
+- Camera view opens showing viewfinder
+- User points camera at health certificate QR code
+- App automatically detects and processes the QR code
 
----
+**Technical Flow:**
+- Navigates to [`ScanFragment`](../app/src/main/java/org/who/gdhcnvalidator/views/ScanFragment.kt)
+- Initializes camera using Android CameraX API
+- [`QRFinder`](../app/src/main/java/org/who/gdhcnvalidator/services/QRFinder.kt) continuously analyzes camera frames
+- When QR code detected, extracts text content and navigates to results
 
-### 3. Data Transformation and Assessment
+**Source Code:**
+```kotlin
+// From ScanFragment.kt
+private fun bindPreview(cameraProvider: ProcessCameraProvider) {
+    val preview: Preview = Preview.Builder().build()
+    val imageAnalyzer = ImageAnalysis.Builder()
+        .setTargetResolution(Size(1280, 720))
+        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+        .build()
+    
+    analyzer = QRFinder { qrContent ->
+        // Navigate to results with QR content
+        findNavController().navigate(
+            ScanFragmentDirections.actionScanFragmentToResultFragment(qrContent)
+        )
+    }
+    imageAnalyzer.setAnalyzer(cameraExecutor, analyzer)
+}
+```
 
-**System Flow:**  
-1. **Mapping to FHIR:**  
-   - The model is mapped to a FHIR `Bundle` using a specific structure map (e.g., `EUDCCtoDDCC.map`, `WHOtoDDCC.map`).
-   - *Transformation logic lives in Mapper classes, e.g., [`DccMapper.kt`](../verify/src/main/java/org/who/ddccverifier/verify/hcert/dcc/DccMapper.kt).*
-2. **Assessment:**  
-   - CQL rules may be evaluated against the FHIR bundle for health status (e.g., vaccinated, tested).
+### 3. QR Code Processing and Verification
 
----
+**User Experience:**
+- Loading screen appears while processing
+- User sees verification status (verified, invalid, etc.)
+- Health certificate information displays in cards
+- Trust information about the issuer is shown
 
-### 4. Display
+**Technical Flow:**
 
-**System Flow:**  
-- The app presents health data, credential metadata, assessment, and issuer info to the user.
+#### 3.1 Format Detection and Decoding
+[`QRDecoder`](../verify/src/main/java/org/who/gdhcnvalidator/QRDecoder.kt) determines QR format by prefix:
+- `HC1:` → HCERT (EU DCC or WHO DDCC) 
+- `SHC:` → Smart Health Cards
+- `B64:` or `PK` → DIVOC (India)
+- Contains `ICAO` → ICAO travel documents
 
+```kotlin
+// From QRDecoder.kt
+fun decode(qrPayload: String): VerificationResult {
+    if (qrPayload.uppercase().startsWith("HC1:")) {
+        return HCertVerifier(registry).unpackAndVerify(qrPayload)
+    }
+    if (qrPayload.uppercase().startsWith("SHC:")) {
+        return ShcVerifier(registry).unpackAndVerify(qrPayload)
+    }
+    // ... other formats
+}
+```
+
+#### 3.2 Format-Specific Processing
+
+Each format has its own verifier that handles:
+
+**HCERT Verification** ([`HCertVerifier`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/HCertVerifier.kt)):
+1. Base45 decode QR content
+2. Decompress with zlib if needed
+3. Parse CBOR/COSE structure  
+4. Verify digital signature
+5. Parse payload into data model (DCC, DDCC, etc.)
+
+**SHC Verification** ([`ShcVerifier`](../verify/src/main/java/org/who/gdhcnvalidator/verify/shc/ShcVerifier.kt)):
+1. Base10 decode numeric QR content
+2. Parse JWT structure
+3. Verify JWS signature
+4. Extract FHIR bundle from payload
+
+**DIVOC Verification** ([`DivocVerifier`](../verify/src/main/java/org/who/gdhcnvalidator/verify/divoc/DivocVerifier.kt)):
+1. Base64 decode or parse plain JSON
+2. Verify W3C Verifiable Credential signature
+3. Parse credential subject and evidence
+
+**ICAO Verification** ([`IcaoVerifier`](../verify/src/main/java/org/who/gdhcnvalidator/verify/icao/IcaoVerifier.kt)):
+1. Parse iJSON structure
+2. Verify custom signature format
+3. Extract vaccination or test data
+
+#### 3.3 Trust Verification
+
+For all formats, [`TrustRegistry`](../trust/src/main/java/org/who/gdhcnvalidator/trust/TrustRegistry.kt):
+1. Resolves issuer from signature key ID
+2. Checks issuer against trusted entities list
+3. Validates key status (not expired, revoked, or terminated)
+4. Returns trust status and issuer information
+
+#### 3.4 Data Model Parsing and Mapping
+
+Each format parses into its logical data model:
+
+- **EU DCC** → [`HCertDCC`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/dcc/DccModel.kt)
+- **WHO DDCC** → [`DdccCoreDataSetVS`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/ddcc/DdccCoreDataSetVSModel.kt) or [`DdccCoreDataSetTR`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/ddcc/DdccCoreDataSetTRModel.kt)
+- **DIVOC** → [`W3CVC`](../verify/src/main/java/org/who/gdhcnvalidator/verify/divoc/DivocModel.kt)
+- **SHC** → [`JWTPayload`](../verify/src/main/java/org/who/gdhcnvalidator/verify/shc/ShcModel.kt)
+- **ICAO** → [`IJson`](../verify/src/main/java/org/who/gdhcnvalidator/verify/icao/IcaoModel.kt)
+- **ICVP** → [`DvcLogicalModel`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/icvp/DvcLogicalModel.kt)
+- **VHL/SHL** → [`SmartHealthLinkModel`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/SmartHealthLinkModel.kt)
+
+#### 3.4.1 VHL (Verifiable Health Link) Special Processing
+
+VHL follows a different workflow from traditional health certificates:
+
+1. **URI Decoding**: `vhlink:/` or `shlink:/` URIs are base64 decoded to extract manifest URL
+2. **PIN Handling**: If required, user is prompted for PIN entry
+3. **Manifest Fetching**: HTTP request retrieves FHIR SearchSet Bundle with file list
+4. **File Presentation**: Available files (PDF, FHIR IPS) are displayed for user selection
+
+#### 3.5 FHIR Bundle Generation
+
+Data models are transformed to FHIR bundles using [`BaseMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/BaseMapper.kt) and Structure Maps:
+
+```kotlin
+// Example from DdccMapper
+fun run(ddcc: DdccCoreDataSetVS): Bundle {
+    return super.run(ddcc, "DDCCtoFHIR.map")
+}
+```
+
+The Structure Maps define transformations like:
+- Patient demographics
+- Vaccination events → FHIR Immunization resources
+- Test results → FHIR Observation resources
+- Certificate metadata → FHIR Composition resource
+
+### 4. Clinical Decision Support
+
+**Technical Flow:**
+1. FHIR bundle is saved to local database via Android FHIR Engine
+2. CQL (Clinical Quality Language) libraries evaluate health status
+3. [`Android Fhir Workflow`](../app/src/main/java/org/who/gdhcnvalidator/services/cql) evaluates rules like "Completed Immunization"
+4. Returns assessment results and recommendations
+
+### 5. Results Display
+
+**User Experience:**
+- [`ResultFragment`](../app/src/main/java/org/who/gdhcnvalidator/views/ResultFragment.kt) shows verification results
+- Health information displays in organized cards
+- Shows issuer trust status and certificate validity
+- User can navigate back to scan another certificate
+
+**Technical Flow:**
+1. [`DDCCFormatter`](../app/src/main/java/org/who/gdhcnvalidator/services/DDCCFormatter.kt) converts FHIR bundle to UI cards
+2. Displays patient demographics, vaccination history, test results
+3. Shows verification status with appropriate colors/icons
+4. Includes issuer information and trust indicators
+
+```kotlin
+// From ResultFragment.kt - Status mapping
+private val statuses = mapOf(
+    QRDecoder.Status.VERIFIED to R.string.verification_status_verified,
+    QRDecoder.Status.INVALID_SIGNATURE to R.string.verification_status_invalid_signature,
+    QRDecoder.Status.ISSUER_NOT_TRUSTED to R.string.verification_status_issuer_not_trusted,
+    // ... other statuses
+)
+```
+
+## Error Handling and Edge Cases
+
+The app handles various error scenarios gracefully:
+
+### QR Code Issues
+- **Not Found**: Camera cannot detect QR code
+- **Not Supported**: QR format not recognized
+- **Invalid Encoding**: Malformed Base45/Base10/Base64 data
+
+### Cryptographic Issues  
+- **Invalid Signature**: Digital signature verification fails
+- **Expired Keys**: Signing keys are past validity period
+- **Revoked Keys**: Keys have been revoked by issuer
+
+### Trust Issues
+- **Issuer Not Trusted**: Issuer not in trusted registry
+- **Terminated Keys**: Issuer has been terminated
+
+Each error provides user-friendly messages and appropriate next steps.
+
+## Technical Architecture Summary
+
+```
+User Scans QR → QRFinder → QRDecoder → Format-Specific Verifier
+                                     ↓
+FHIR Bundle ← Structure Map ← Data Model ← Parsed Payload
+     ↓
+Android FHIR Engine → CQL Evaluation → Assessment Results
+     ↓
+DDCCFormatter → UI Cards → ResultFragment → User
+```
+
+## Data Flow Diagram
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│ HomeFragment│ →  │ ScanFragment│ →  │ResultFragment│
+└─────────────┘    └─────────────┘    └─────────────┘
+                          │                   ↑
+                    ┌─────▼─────┐             │
+                    │ QRFinder  │             │
+                    └─────┬─────┘             │
+                          │                   │
+                    ┌─────▼─────┐             │
+                    │ QRDecoder │             │
+                    └─────┬─────┘             │
+                          │                   │
+         ┌────────────────┼────────────────┐  │
+         │                │                │  │
+   ┌─────▼─────┐ ┌────────▼────────┐ ┌─────▼──▼──┐
+   │HCertVerifier│ │  ShcVerifier   │ │DivocVerifier│
+   └─────┬─────┘ └────────┬────────┘ └─────┬─────┘
+         │                │                │
+   ┌─────▼─────┐ ┌────────▼────────┐ ┌─────▼─────┐
+   │ DccModel  │ │   JWTPayload    │ │  W3CVC    │
+   └─────┬─────┘ └────────┬────────┘ └─────┬─────┘
+         │                │                │
+   ┌─────▼─────┐ ┌────────▼────────┐ ┌─────▼─────┐
+   │ DccMapper │ │   ShcMapper     │ │DivocMapper│
+   └─────┬─────┘ └────────┬────────┘ └─────┬─────┘
+         │                │                │
+         └────────────────┼────────────────┘
+                          │
+                    ┌─────▼─────┐
+                    │FHIR Bundle│
+                    └─────┬─────┘
+                          │
+                 ┌────────▼────────┐
+                 │Android FHIR Engine│
+                 └────────┬────────┘
+                          │
+                 ┌────────▼────────┐
+                 │  CQL Evaluation │
+                 └────────┬────────┘
+                          │
+                 ┌────────▼────────┐
+                 │ DDCCFormatter   │
+                 └─────────────────┘
+```
+
+This workflow ensures secure, standardized processing of multiple health certificate formats while providing a smooth user experience.
 ---
 
 ## Developer Guide: Adding a New Model or Version
@@ -76,13 +302,13 @@ See also: [Digital Health Certificate Data Models](./data-models.md)
 ### 2. Add Model Classes
 
 - Create a new model class (or version) in the appropriate directory:
-  - Example: `verify/src/main/java/org/who/ddccverifier/verify/hcert/newmodel/NewModel.kt`
+  - Example: `verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/newmodel/NewModel.kt`
 - Inherit from `BaseModel` for consistency.
 - Use Jackson annotations for JSON/CBOR mapping as needed.
 
 ### 3. Add a Mapper
 
-- Create a Mapper class (e.g., `NewModelMapper.kt`) extending `BaseMapper`.
+- Create a Mapper class (e.g., `NewModelMapper.kt`) extending `BaseMapper` (see `verify/src/main/java/org/who/gdhcnvalidator/verify/BaseMapper.kt`).
 - Implement a `run()` method that takes your new model and returns a FHIR `Bundle`.
 - Reference or create a structure map file for transforming your model to FHIR.
 
@@ -119,24 +345,3 @@ See also: [Digital Health Certificate Data Models](./data-models.md)
    - Add tests for signature validation, mapping to FHIR, and error handling.
 
 ---
-
-## Visual Workflow
-
-```
-User → [Scan/Upload Certificate]
-     → [Decode & Detect Model Type]
-         → [Instantiate Model Class]
-             → [Verify Signature & Trust]
-                 → [Map to FHIR Bundle]
-                     → [Assessment (CQL)]
-                         → [Display Results/Status]
-```
-
----
-
-## Quick Links
-
-- [Digital Health Certificate Data Models](./data-models.md)
-- [FHIR Structure Maps](https://worldhealthorganization.github.io/ddcc/)
-- [Trust Verification](https://github.com/WorldHealthOrganization/ddcc-trust)
-- [Main App Diagram](../README.md)

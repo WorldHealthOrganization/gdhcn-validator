@@ -1,89 +1,224 @@
-# Digital Health Certificate Data Models
+# Data Models Documentation
 
-This project supports multiple digital health certificate standards. Each standard is implemented as a data model in the codebase, with mapping logic to FHIR and other healthcare formats. Below, you'll find an overview of the core models, their relationships, and direct links to their source code.
+This document describes the data models used in the GDHCN Validator app for processing various types of digital health certificates.
 
----
+## Table of Contents
 
-## 1. EU DCC (EU Digital COVID Certificate)
+- [Overview](#overview)
+- [Base Classes](#base-classes)
+- [Supported Data Models](#supported-data-models)
+  - [1. DDCC (Digital Documentation of COVID-19 Certificates)](#1-ddcc-digital-documentation-of-covid-19-certificates)
+  - [2. EU DCC (Digital COVID Certificate)](#2-eu-dcc-digital-covid-certificate)
+  - [3. DIVOC (Digital Infrastructure for Verifiable Open Credentialing)](#3-divoc-digital-infrastructure-for-verifiable-open-credentialing)
+  - [4. SHC (Smart Health Cards)](#4-shc-smart-health-cards)
+  - [5. ICAO (International Civil Aviation Organization)](#5-icao-international-civil-aviation-organization)
+  - [6. ICVP/DVC (International Certificate of Vaccination or Prophylaxis)](#6-icvpdvc-international-certificate-of-vaccination-or-prophylaxis)
+  - [7. Smart Health Links](#7-smart-health-links)
+- [Data Flow and Transformation](#data-flow-and-transformation)
+- [Common Serialization Features](#common-serialization-features)
+- [References](#references)
 
-- **Format:** HCERT/CBOR
-- **Description:** The EU DCC is a digital certificate standard developed by the European Union for cross-border COVID-19 credential verification. It uses the HCERT container format.
-- **Core Model:** `CWT` → `HCERT` → `EUDCC`, `PersonName`, `Vaccination`, `Test`, `Recovery`
-- **Source Code:**  
-  - [DccModel.kt](../verify/src/main/java/org/who/ddccverifier/verify/hcert/dcc/DccModel.kt)
-  - [DccMapper.kt](../verify/src/main/java/org/who/ddccverifier/verify/hcert/dcc/DccMapper.kt)
+## Overview
 
----
+The GDHCN Validator supports multiple digital health certificate standards, each with its own data model. These models are parsed from QR codes and transformed into FHIR (Fast Healthcare Interoperability Resources) bundles for standardized processing.
 
-## 2. WHO DDCC (Digital Documentation of COVID-19 Certificates)
+## Base Classes
 
-- **Format:** HCERT/CBOR (WHO extensions)
-- **Description:** WHO's DDCC models both vaccination and testing events. It extends the HCERT envelope with custom payloads for vaccination (`WHO_CoreDataSet_VS`) and testing (`WHO_CoreDataSet_TR`).
-- **Core Model:** `WHO_CoreDataSet`, `WHO_Certificate`, `WHO_Vaccination`, `WHO_Test`
-- **Source Code:**  
-  - [WhoModel.kt](../verify/src/main/java/org/who/ddccverifier/verify/hcert/who/WhoModel.kt)
+### BaseModel
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/BaseModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/BaseModel.kt)
 
----
+The foundation class for all data models, extending FHIR's `Resource` class to enable integration with the FHIR ecosystem.
 
-## 3. SHC (SMART Health Card)
+### BaseMapper
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/BaseMapper.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/BaseMapper.kt)
 
-- **Format:** JWT/JSON
-- **Description:** SHC is a North American digital health certificate standard using JWT and FHIR bundles.
-- **Core Model:** `JWTPayload`, `VC`, `CredentialSubject`
-- **Source Code:**  
-  - [ShcModel.kt](../verify/src/main/java/org/who/ddccverifier/verify/shc/ShcModel.kt)
+Base class for all mappers that transform logical models into FHIR bundles using Structure Maps.
 
----
+## Supported Data Models
 
-## 4. DIVOC (India Digital Certificate)
+### 1. DDCC (Digital Documentation of COVID-19 Certificates)
 
-- **Format:** JSON-LD / W3C Verifiable Credential
-- **Description:** DIVOC uses the W3C Verifiable Credential standard to represent vaccination and test credentials.
-- **Core Model:** `W3CVC`, `CredentialSubject`, `Evidence`, `Proof`, `Verifier`, `Facility`
-- **Source Code:**  
-  - [DivocModel.kt](../verify/src/main/java/org/who/ddccverifier/verify/divoc/DivocModel.kt)
+DDCC is the WHO standard for digital health certificates.
 
----
+#### DDCC Core Data Set - Vaccination/Immunization (VS)
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/ddcc/DdccCoreDataSetVSModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/ddcc/DdccCoreDataSetVSModel.kt)
 
-## 5. ICAO
+**Key Fields:**
+- `name: StringType` - Patient name
+- `birthDate: DateType` - Date of birth
+- `sex: Coding` - Patient gender
+- `identifier: Identifier` - Patient identifier
+- `vaccination: Vaccination` - Vaccination details including:
+  - `vaccine: Coding` - Vaccine type
+  - `brand: Coding` - Vaccine brand
+  - `manufacturer: Base` - Manufacturer information
+  - `lot: StringType` - Lot number
+  - `date: DateTimeType` - Vaccination date
 
-- **Format:** iJSON
-- **Description:** ICAO's model is used for test certificates, mainly for international air travel.
-- **Core Model:** `DateTimeTestReport`, `TestResult`, `Signature`
-- **Source Code:**  
-  - [IcaoModel.kt](../verify/src/main/java/org/who/ddccverifier/verify/icao/IcaoModel.kt)
+#### DDCC Core Data Set - Test Results (TR)
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/ddcc/DdccCoreDataSetTRModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/ddcc/DdccCoreDataSetTRModel.kt)
 
----
+**Key Fields:**
+- Inherits patient data from base DDCC model
+- `test: DdccTestResult` - Test result details including:
+  - `pathogen: Coding` - Target pathogen
+  - `type: Coding` - Test type
+  - `result: Coding` - Test result
+  - `date: DateTimeType` - Test date
 
-## 6. Common Infrastructure
+**Mapper:** [`DdccMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/ddcc/DdccMapper.kt)
 
-- **Base Class:** All models inherit from [`BaseModel`](../verify/src/main/java/org/who/ddccverifier/verify/BaseModel.kt)
-- **Verifiers:**  
-  - Main entry point is [`HCertVerifier`](../verify/src/main/java/org/who/ddccverifier/verify/hcert/HCertVerifier.kt), which routes to the appropriate mapper based on certificate type.
+### 2. EU DCC (Digital COVID Certificate)
 
----
+The European Union's digital COVID certificate standard.
 
-## Relationships
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/dcc/DccModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/dcc/DccModel.kt)
 
-- All models are ultimately mapped into [FHIR](https://www.hl7.org/fhir/) objects for interoperability.
-- The [README](../README.md) contains a class diagram and verification flow.
-- For workflow and usage, see [User Workflows](./user-workflows.md).
+#### HCertDCC
+**Key Fields:**
+- `ver: StringType` - Schema version
+- `nam: PersonName` - Person name with standardized formats
+- `dob: DateType` - Date of birth
+- `v: List<Vaccination>` - Vaccination events
+- `t: List<Test>` - Test events  
+- `r: List<Recovery>` - Recovery events
 
----
+#### Supporting Classes:
+- **PersonName**: Surname and forename (both raw and standardized)
+- **Vaccination**: Vaccine details with dose information
+- **Test**: Test details with results
+- **Recovery**: Recovery certificate information
 
-## External Standards
+**Mapper:** [`DccMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/dcc/DccMapper.kt)
 
-- [EU DCC Technical Specifications](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf)
-- [WHO DDCC:VS Specification](https://www.who.int/publications/i/item/WHO-2019-nCoV-Digital_certificates-vaccination-2021.1)
-- [SMART Health Card](https://spec.smarthealth.cards/)
-- [DIVOC Documentation](https://divoc.digit.org/)
-- [ICAO Visible Digital Seal](https://www.icao.int/Security/FAL/TRIP/Pages/Visible-Digital-Seals.aspx)
+### 3. DIVOC (Digital Infrastructure for Verifiable Open Credentialing)
 
----
+India's digital health certificate system using W3C Verifiable Credentials.
 
-## See Also
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/divoc/DivocModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/divoc/DivocModel.kt)
 
-- [User Workflows](./user-workflows.md)
-- [README Class Diagram](../README.md)
+#### W3CVC (W3C Verifiable Credential)
+**Key Fields:**
+- `context: List<StringType>` - JSON-LD context
+- `type: List<StringType>` - Credential types
+- `issuer: StringType` - Credential issuer
+- `credentialSubject: CredentialSubject` - Subject details
+- `evidence: List<Evidence>` - Vaccination evidence
+- `proof: Proof` - Cryptographic proof
 
----
+#### CredentialSubject
+Patient information including name, gender, age/DOB, nationality, and address.
+
+#### Evidence
+Vaccination details including vaccine type, manufacturer, batch, dates, and facility information.
+
+**Mapper:** [`DivocMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/divoc/DivocMapper.kt)
+
+### 4. SHC (Smart Health Cards)
+
+US/International standard for health credentials using JWT format.
+
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/shc/ShcModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/shc/ShcModel.kt)
+
+#### JWTPayload
+**Key Fields:**
+- `iss: StringType` - Issuer
+- `sub: StringType` - Subject
+- `exp/nbf/iat: DateTimeType` - Token validity periods
+- `vc: VC` - Verifiable credential containing FHIR bundle
+
+#### VC (Verifiable Credential)
+Contains the actual health data as a FHIR Bundle, allowing for rich, standardized health information.
+
+**Mapper:** [`ShcMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/shc/ShcMapper.kt)
+
+### 5. ICAO (International Civil Aviation Organization)
+
+Standard for digital travel health documents.
+
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/icao/IcaoModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/icao/IcaoModel.kt)
+
+#### IJson
+**Key Fields:**
+- `data: Data` - Contains header and message
+- `sig: Signature` - Digital signature
+
+#### Key Components:
+- **Header**: Issuer, type (`icao.test`, `icao.vacc`), version
+- **Message**: Patient info, vaccination events, or test results
+- **Patient**: Identity document details (passport, ID card, etc.)
+- **VaccinationEvent**: Vaccine details with administration info
+- **ServiceProvider**: Test provider information
+
+**Mapper:** [`IcaoMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/icao/IcaoMapper.kt)
+
+### 6. ICVP/DVC (International Certificate of Vaccination or Prophylaxis)
+
+WHO's international vaccination certificate standard.
+
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/icvp/DvcLogicalModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/icvp/DvcLogicalModel.kt)
+
+#### DvcLogicalModel
+**Key Fields:**
+- `name: StringType` - Patient name
+- `dob: DateType` - Date of birth
+- `sex: CodeType` - Gender
+- `nationality: CodeType` - Nationality
+- `nid: StringType` - National identifier
+- `guardian: StringType` - Guardian information
+- `issuer: Reference` - Certificate issuer
+- `vaccineDetails: DvcVaccineDetails` - Vaccination information
+
+**Mapper:** [`DvcMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/icvp/DvcMapper.kt)
+
+### 7. Smart Health Links and Verifiable Health Links (VHL)
+
+**Source:** [`verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/SmartHealthLinkModel.kt`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/SmartHealthLinkModel.kt)
+
+Support for Smart Health Links (SHL) and Verifiable Health Links (VHL) protocol for sharing health data.
+
+#### SmartHealthLinkModel
+**Key Fields:**
+- `u: StringType` - URI containing the link to health data manifest
+
+**VHL Features:**
+- Supports both `vhlink:/` and `shlink:/` URI formats
+- Base64 decoding of URI payload to extract manifest URL
+- PIN requirement detection and handling
+- Manifest fetching with optional PIN parameter
+
+#### VHL Processing Flow
+1. **URI Detection**: QR codes starting with `vhlink:/` or `shlink:/` are identified as VHL
+2. **URI Decoding**: Base64 decode the URI payload to extract manifest URL and flags
+3. **PIN Handling**: If PIN is required (P flag), prompt user for PIN entry
+4. **Manifest Fetching**: HTTP request to retrieve FHIR SearchSet Bundle manifest
+5. **File Extraction**: Parse manifest to extract available files (PDF, FHIR IPS)
+6. **User Interface**: Display file list with download/view options
+
+**Mapper:** [`HealthLinkMapper`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/HealthLinkMapper.kt)
+**Verifier:** [`VhlVerifier`](../verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/healthlink/VhlVerifier.kt)
+
+## Data Flow and Transformation
+
+All models follow a consistent pattern:
+
+1. **QR Code Parsing**: Raw QR data is decoded based on format (CBOR, JWT, JSON-LD, etc.)
+2. **Model Instantiation**: Data is parsed into the appropriate logical model
+3. **FHIR Transformation**: Models are transformed to FHIR bundles using Structure Maps
+4. **Validation**: FHIR bundles are validated and assessed using CQL rules
+5. **Display**: Results are formatted for user interface
+
+## Common Serialization Features
+
+- **Jackson Integration**: All models use Jackson annotations for JSON/CBOR parsing
+- **Custom Deserializers**: Special handling for FHIR types and format conversions
+- **FHIR Compatibility**: Models extend FHIR base classes for seamless integration
+
+## References
+
+- [DDCC Implementation Guide](https://worldhealthorganization.github.io/ddcc/)
+- [Smart Health Cards Specification](https://spec.smarthealth.cards/)
+- [EU DCC Schema](https://ec.europa.eu/health/ehealth/covid-19_en)
+- [W3C Verifiable Credentials](https://www.w3.org/TR/vc-data-model/)
+- [ICAO Visible Digital Seals](https://www.icao.int/Security/FAL/TRIP/Pages/Publications.aspx)
+- [FHIR R4 Specification](https://hl7.org/fhir/R4/)

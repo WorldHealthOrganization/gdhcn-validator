@@ -37,7 +37,8 @@
                 android:layout_below="@id/tv_scan_align"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="34dp"
-                android:background="@drawable/qr_rect"/>
+                android:background="@drawable/qr_rect"
+                android:contentDescription="@string/pointToQR" />
 
         </RelativeLayout>
 

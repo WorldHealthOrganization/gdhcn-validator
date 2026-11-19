@@ -43,7 +43,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="@drawable/rounded_card_blank"
-            android:layout_marginLeft="23dp"
+            android:layout_marginStart="23dp"
             android:layout_marginBottom="23dp"
             android:layout_marginTop="20dp"
             app:layout_constraintDimensionRatio="H,1:1"
@@ -57,8 +57,8 @@
             android:orientation="vertical"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="23dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="23dp"
             app:layout_constraintBottom_toBottomOf="@id/vw_home_card_picture"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/vw_home_card_picture"
@@ -69,7 +69,7 @@
                 android:layout_height="6dip"
                 android:background="@color/shade10"
                 android:layout_marginBottom="10dp"
-                android:layout_marginRight="30dp"
+                android:layout_marginEnd="30dp"
                 android:layout_marginTop="3dp"/>
 
             <View
@@ -115,6 +115,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/fab_margin"
         android:layout_marginBottom="@dimen/fab_margin"
+        android:contentDescription="@string/add_new_card"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_input_add" />
