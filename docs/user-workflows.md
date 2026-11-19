@@ -14,6 +14,8 @@ This document describes the user experience and technical workflows in the GDHCN
 - [Error Handling and Edge Cases](#error-handling-and-edge-cases)
 - [Technical Architecture Summary](#technical-architecture-summary)
 - [Data Flow Diagram](#data-flow-diagram)
+- [Developer Guide: Adding a New Model or Version](#developer-guide-adding-a-new-model-or-version)
+- [Example: Adding "MyNewDCC"](#example-adding-mynewdcc)
 
 ## User Journey Overview
 
@@ -288,3 +290,58 @@ DDCCFormatter → UI Cards → ResultFragment → User
 ```
 
 This workflow ensures secure, standardized processing of multiple health certificate formats while providing a smooth user experience.
+---
+
+## Developer Guide: Adding a New Model or Version
+
+### 1. Identify the Standard & Data Format
+
+- Determine if the standard uses CBOR/HCERT, JWT, JSON-LD, or iJSON.
+- Review similar models (see [Digital Health Certificate Data Models](./data-models.md)).
+
+### 2. Add Model Classes
+
+- Create a new model class (or version) in the appropriate directory:
+  - Example: `verify/src/main/java/org/who/gdhcnvalidator/verify/hcert/newmodel/NewModel.kt`
+- Inherit from `BaseModel` for consistency.
+- Use Jackson annotations for JSON/CBOR mapping as needed.
+
+### 3. Add a Mapper
+
+- Create a Mapper class (e.g., `NewModelMapper.kt`) extending `BaseMapper` (see `verify/src/main/java/org/who/gdhcnvalidator/verify/BaseMapper.kt`).
+- Implement a `run()` method that takes your new model and returns a FHIR `Bundle`.
+- Reference or create a structure map file for transforming your model to FHIR.
+
+### 4. Update the Verifier
+
+- If your model is a new type, update the relevant verifier (`HCertVerifier.kt`, etc.) to detect and route your model.
+- Add detection logic to select your Mapper and parse your model from the payload.
+
+### 5. Update Documentation
+
+- Add your new model to:
+  - [Digital Health Certificate Data Models](./data-models.md)
+  - This workflow document (user-workflows.md)
+- Include a summary, fields, and source code links.
+
+### 6. Testing
+
+- Add unit tests for model parsing, mapping, and verification.
+- Test edge cases (signature errors, malformed payloads).
+
+---
+
+## Example: Adding "MyNewDCC"
+
+1. **Create Model:**  
+   - `MyNewDccModel.kt` in a subpackage.
+2. **Create Mapper:**  
+   - `MyNewDccMapper.kt` with a `run(model: MyNewDcc): Bundle` method.
+3. **Hook Up Detection:**  
+   - Update `HCertVerifier.kt` to detect and process MyNewDCC QR codes.
+4. **Document:**  
+   - Add to [Digital Health Certificate Data Models](./data-models.md) and here.
+5. **Test:**  
+   - Add tests for signature validation, mapping to FHIR, and error handling.
+
+---
